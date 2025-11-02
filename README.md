@@ -1,4 +1,4 @@
-# core
+# ORION.CORE
 <h1>Sistema de Gestión Web</h1>
 <h2>PHP8 + MariaDB + Diseño Minimalista</h2>
 <h3>Descripción</h3>
