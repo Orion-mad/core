@@ -1,0 +1,14 @@
+# En /uploads/.htaccess
+Order Deny,Allow
+Deny from all
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf|doc|docx)$">
+    Allow from all
+</FilesMatch>
+
+# En /logs/.htaccess
+Order Deny,Allow
+Deny from all
+
+# En /config/.htaccess
+Order Deny,Allow
+Deny from all
