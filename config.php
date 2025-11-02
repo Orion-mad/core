@@ -73,12 +73,40 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// Función para renderizar vista con layout
+function render_with_layout($content, $data = []) {
+    // Extraer variables para el layout
+    extract($data);
+    
+    // Incluir el layout principal
+    $layout_file = VIEWS_PATH . '/layout.php';
+    if (file_exists($layout_file)) {
+        include $layout_file;
+    } else {
+        throw new Exception("Layout no encontrado");
+    }
+}
+
 // Función para cargar vistas
 function load_view($view, $data = []) {
+    // Extraer variables para la vista
     extract($data);
+    
+    // Determinar la ruta del archivo
     $view_file = VIEWS_PATH . '/' . $view . '.php';
+    
+    // Si no existe, buscar en subdirectorios
+    if (!file_exists($view_file)) {
+        // Buscar en admin/
+        $admin_file = VIEWS_PATH . '/admin/' . $view . '.php';
+        if (file_exists($admin_file)) {
+            $view_file = $admin_file;
+        }
+    }
+    
     if (file_exists($view_file)) {
-        require_once $view_file;
+        // Incluir el archivo de vista
+        include $view_file;
     } else {
         throw new Exception("Vista no encontrada: $view");
     }

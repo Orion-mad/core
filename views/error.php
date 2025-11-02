@@ -51,5 +51,9 @@ ob_start();
 
 <?php 
 $content = ob_get_clean();
-include 'layout.php'; 
+render_with_layout($content, [
+    'current_page' => $current_page,
+    'title' => $title,
+    'breadcrumb' => $breadcrumb
+]); 
 ?>

@@ -35,8 +35,8 @@ class Auth {
 
             // Buscar usuario
             $user = $this->db->selectOne(
-                "SELECT * FROM usuarios WHERE (username = :username OR email = :username) AND estado = 'activo'",
-                ['username' => $username]
+                "SELECT * FROM usuarios WHERE (username = :username OR email = :email) AND estado = 'activo'",
+                ['username' => $username, 'email' => $username]
             );
 
             if (!$user) {
@@ -361,8 +361,8 @@ class Auth {
     private function isUserBlocked(string $username): bool {
         try {
             $user = $this->db->selectOne(
-                "SELECT intentos_fallidos FROM usuarios WHERE (username = :username OR email = :username)",
-                ['username' => $username]
+                "SELECT intentos_fallidos FROM usuarios WHERE (username = :username OR email = :email)",
+                ['username' => $username, 'email' => $username]
             );
 
             return $user && $user['intentos_fallidos'] >= MAX_LOGIN_ATTEMPTS;
