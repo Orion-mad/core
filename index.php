@@ -1,6 +1,6 @@
 <?php
 /**
- * Archivo principal del sistema
+ * Archivo principal del sistema CORREGIDO
  * Sistema de Gestión - PHP8 + MariaDB
  */
 
@@ -85,7 +85,6 @@ switch ($action) {
 
 /**
  * Manejar login
- */
 function handleLogin() {
     global $auth;
     
@@ -127,7 +126,92 @@ function handleLogin() {
         'csrf_token' => generate_csrf_token()
     ]);
 }
+ */
 
+function handleLogin() {
+    global $auth;
+    
+    // Asegurar que la sesión esté iniciada
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+    
+    if ($auth->isAuthenticated()) {
+        redirect('index.php?action=dashboard');
+    }
+    
+    $error_message = '';
+    $timeout_message = $_SESSION['timeout_message'] ?? '';
+    unset($_SESSION['timeout_message']);
+    
+    // Generar token CSRF antes de cualquier verificación
+    $csrf_token = generate_csrf_token();
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $username = sanitize($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $received_csrf_token = $_POST['csrf_token'] ?? '';
+        
+        // Debug info para troubleshooting
+        write_log('DEBUG', 'Login attempt', [
+            'username' => $username,
+            'csrf_received' => !empty($received_csrf_token),
+            'csrf_info' => debug_csrf_info()
+        ]);
+        
+        // Verificar CSRF token con mejor manejo de errores
+        if (!verify_csrf_token($received_csrf_token)) {
+            $error_message = 'Token de seguridad inválido. Por favor, recargue la página e intente nuevamente.';
+            
+            // Regenerar token para el siguiente intento
+            clear_csrf_token();
+            $csrf_token = generate_csrf_token();
+            
+            write_log('WARNING', 'Login failed: Invalid CSRF token', [
+                'username' => $username,
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
+                'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 100),
+                'csrf_debug' => debug_csrf_info()
+            ]);
+            
+        } elseif (empty($username) || empty($password)) {
+            $error_message = 'Por favor complete todos los campos';
+            
+        } else {
+            // Proceder con autenticación
+            $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
+            $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+            
+            $result = $auth->login($username, $password, $ip_address, $user_agent);
+            
+            if ($result['success']) {
+                // Limpiar token CSRF después del login exitoso
+                clear_csrf_token();
+                
+                write_log('INFO', 'Login successful', [
+                    'username' => $username,
+                    'ip' => $ip_address
+                ]);
+                
+                redirect('index.php?action=dashboard');
+            } else {
+                $error_message = $result['message'];
+                
+                write_log('WARNING', 'Login failed: Invalid credentials', [
+                    'username' => $username,
+                    'ip' => $ip_address,
+                    'error' => $result['message']
+                ]);
+            }
+        }
+    }
+    
+    load_view('login', [
+        'error_message' => $error_message,
+        'timeout_message' => $timeout_message,
+        'csrf_token' => $csrf_token
+    ]);
+}
 /**
  * Manejar logout
  */
@@ -174,7 +258,9 @@ function handleDashboard() {
         'user' => $user,
         'stats' => $stats,
         'recent_activity' => $recent_activity,
-        'is_admin' => $auth->isAdmin()
+        'is_admin' => $auth->isAdmin(),
+        'current_page' => 'dashboard',
+        'title' => 'Dashboard'
     ]);
 }
 
@@ -243,7 +329,12 @@ function handleAdminPanel() {
     );
     
     // Información del servidor
-    $server_info = $db->getServerInfo();
+    $server_info = [];
+    try {
+        $server_info = $db->getServerInfo();
+    } catch (Exception $e) {
+        $server_info = ['version' => 'Desconocida'];
+    }
     $server_info['php_version'] = PHP_VERSION;
     $server_info['memory_usage'] = memory_get_usage(true);
     $server_info['memory_peak'] = memory_get_peak_usage(true);
@@ -251,7 +342,9 @@ function handleAdminPanel() {
     load_view('admin/panel', [
         'system_stats' => $system_stats,
         'system_config' => $system_config,
-        'server_info' => $server_info
+        'server_info' => $server_info,
+        'current_page' => 'admin',
+        'title' => 'Panel de Administración'
     ]);
 }
 
@@ -290,7 +383,9 @@ function handleAdminUsers() {
     
     load_view('admin/usuarios', [
         'users' => $users,
-        'roles' => $roles
+        'roles' => $roles,
+        'current_page' => 'usuarios',
+        'title' => 'Gestión de Usuarios'
     ]);
 }
 
@@ -323,7 +418,9 @@ function handleAdminRoles() {
     
     load_view('admin/roles', [
         'roles' => $roles,
-        'permisos' => $permisos
+        'permisos' => $permisos,
+        'current_page' => 'roles',
+        'title' => 'Gestión de Roles'
     ]);
 }
 
@@ -349,7 +446,9 @@ function handleAdminPermissions() {
     );
     
     load_view('admin/permisos', [
-        'permisos' => $permisos
+        'permisos' => $permisos,
+        'current_page' => 'permisos',
+        'title' => 'Gestión de Permisos'
     ]);
 }
 
@@ -365,55 +464,26 @@ function handleAdminConfig() {
     }
     
     $db = Database::getInstance();
-    $message = '';
     
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $csrf_token = $_POST['csrf_token'] ?? '';
-        
-        if (!verify_csrf_token($csrf_token)) {
-            $message = 'Token de seguridad inválido';
-        } else {
-            $config_updates = $_POST['config'] ?? [];
-            
-            try {
-                $db->beginTransaction();
-                
-                foreach ($config_updates as $clave => $valor) {
-                    $db->update(
-                        'configuracion_sistema',
-                        [
-                            'valor' => $valor,
-                            'modificado_por' => $_SESSION['user_id']
-                        ],
-                        'clave = :clave AND modificable = 1',
-                        ['clave' => $clave]
-                    );
-                }
-                
-                $db->commit();
-                $message = 'Configuración actualizada correctamente';
-                
-                write_log('INFO', 'Configuración del sistema actualizada', [
-                    'user_id' => $_SESSION['user_id'],
-                    'changes' => $config_updates
-                ]);
-                
-            } catch (Exception $e) {
-                $db->rollback();
-                $message = 'Error al actualizar la configuración';
-                write_log('ERROR', 'Error actualizando configuración: ' . $e->getMessage());
-            }
-        }
-    }
+    // Obtener configuraciones por categoría
+    $config_general = $db->select(
+        "SELECT * FROM configuracion_sistema WHERE categoria = 'general' ORDER BY clave"
+    );
     
-    $configuraciones = $db->select(
-        "SELECT * FROM configuracion_sistema ORDER BY categoria, clave"
+    $config_email = $db->select(
+        "SELECT * FROM configuracion_sistema WHERE categoria = 'email' ORDER BY clave"
+    );
+    
+    $config_security = $db->select(
+        "SELECT * FROM configuracion_sistema WHERE categoria = 'seguridad' ORDER BY clave"
     );
     
     load_view('admin/configuracion', [
-        'configuraciones' => $configuraciones,
-        'message' => $message,
-        'csrf_token' => generate_csrf_token()
+        'config_general' => $config_general,
+        'config_email' => $config_email,
+        'config_security' => $config_security,
+        'current_page' => 'configuracion',
+        'title' => 'Configuración del Sistema'
     ]);
 }
 
@@ -430,23 +500,25 @@ function handleAdminAudit() {
     
     $db = Database::getInstance();
     
+    // Obtener logs de auditoría
     $audit_logs = $db->select(
         "SELECT a.*, u.username FROM auditoria a 
          LEFT JOIN usuarios u ON a.usuario_id = u.id 
-         ORDER BY a.fecha_accion DESC LIMIT 200"
+         ORDER BY a.fecha_accion DESC LIMIT 100"
     );
     
-    // Si no hay logs, crear algunos de prueba
+    // Si no hay datos de auditoría, crear algunos de ejemplo
     if (empty($audit_logs)) {
         $audit_logs = [
             [
                 'id' => 1,
-                'usuario_id' => 1,
-                'username' => 'admin',
-                'accion' => 'login',
-                'tabla_afectada' => null,
-                'datos_anteriores' => null,
-                'datos_nuevos' => json_encode(['ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']),
+                'usuario_id' => $_SESSION['user_id'] ?? 1,
+                'username' => $_SESSION['username'] ?? 'admin',
+                'accion' => 'login_successful',
+                'tabla_afectada' => 'usuarios',
+                'registro_id' => $_SESSION['user_id'] ?? 1,
+                'valores_anteriores' => json_encode(['ultimo_acceso' => date('Y-m-d H:i:s', strtotime('-1 hour'))]),
+                'valores_nuevos' => json_encode(['ultimo_acceso' => date('Y-m-d H:i:s')]),
                 'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0',
                 'fecha_accion' => date('Y-m-d H:i:s')
@@ -455,12 +527,18 @@ function handleAdminAudit() {
     }
     
     load_view('admin/auditoria', [
-        'audit_logs' => $audit_logs
+        'audit_logs' => $audit_logs,
+        'current_page' => 'auditoria',
+        'title' => 'Auditoría del Sistema'
     ]);
 }
 
 /**
- * Funciones auxiliares para otras secciones
+ * *** FUNCIONES CORREGIDAS PARA USUARIOS NORMALES ***
+ */
+
+/**
+ * Usuarios normales - ahora usa admin/usuarios correctamente
  */
 function handleUsers() {
     global $auth;
@@ -470,9 +548,22 @@ function handleUsers() {
         return;
     }
     
-    load_view('usuarios');
+    // *** CORREGIDO: Redirigir a la vista admin si es admin ***
+    if ($auth->isAdmin()) {
+        handleAdminUsers();
+        return;
+    }
+    
+    // Para usuarios normales, mostrar vista simplificada
+    load_view('usuarios_simple', [
+        'current_page' => 'usuarios',
+        'title' => 'Usuarios'
+    ]);
 }
 
+/**
+ * Roles normales - ahora usa admin/roles correctamente
+ */
 function handleRoles() {
     global $auth;
     
@@ -481,9 +572,22 @@ function handleRoles() {
         return;
     }
     
-    load_view('roles');
+    // *** CORREGIDO: Redirigir a la vista admin si es admin ***
+    if ($auth->isAdmin()) {
+        handleAdminRoles();
+        return;
+    }
+    
+    // Para usuarios normales, mostrar vista simplificada
+    load_view('roles_simple', [
+        'current_page' => 'roles',
+        'title' => 'Roles'
+    ]);
 }
 
+/**
+ * Configuración - corregida
+ */
 function handleConfig() {
     global $auth;
     
@@ -492,16 +596,36 @@ function handleConfig() {
         return;
     }
     
-    load_view('configuracion');
+    // *** CORREGIDO: Redirigir a la vista admin si es admin ***
+    if ($auth->isAdmin()) {
+        handleAdminConfig();
+        return;
+    }
+    
+    // Para usuarios normales, mostrar vista simplificada
+    load_view('configuracion_simple', [
+        'current_page' => 'configuracion',
+        'title' => 'Configuración'
+    ]);
 }
 
+/**
+ * Perfil de usuario
+ */
 function handleProfile() {
     global $auth;
     
     $user = $auth->getCurrentUser();
-    load_view('perfil', ['user' => $user]);
+    load_view('perfil', [
+        'user' => $user,
+        'current_page' => 'perfil',
+        'title' => 'Mi Perfil'
+    ]);
 }
 
+/**
+ * Auditoría - corregida
+ */
 function handleAudit() {
     global $auth;
     
@@ -525,7 +649,11 @@ function handleAudit() {
         ['user_id' => $_SESSION['user_id']]
     );
     
-    load_view('auditoria', ['audit_logs' => $audit_logs]);
+    load_view('auditoria', [
+        'audit_logs' => $audit_logs,
+        'current_page' => 'auditoria',
+        'title' => 'Mi Actividad'
+    ]);
 }
 
 ?>

@@ -12,29 +12,37 @@ $breadcrumb = 'Dashboard';
 </div>
 
 <!-- Estadísticas del sistema -->
-<div class="stats-grid">
-    <div class="stat-card">
+<div class="row gx-5">
+    <div class="col-3">
+    <div class="stat-card p-2">
         <div class="stat-number"><?= number_format($stats['total_usuarios']) ?></div>
         <div class="stat-label">Total Usuarios</div>
     </div>
+    </div>
     
-    <div class="stat-card">
+    <div class="col-3">
+    <div class="stat-card p-2">
         <div class="stat-number"><?= number_format($stats['usuarios_activos']) ?></div>
         <div class="stat-label">Usuarios Activos</div>
     </div>
+    </div>
     
-    <div class="stat-card">
+    <div class="col-3">
+    <div class="stat-card p-2">
         <div class="stat-number"><?= number_format($stats['total_roles']) ?></div>
         <div class="stat-label">Roles del Sistema</div>
     </div>
+    </div>
     
-    <div class="stat-card">
+    <div class="col-3">
+    <div class="stat-card p-2">
         <div class="stat-number"><?= number_format($stats['sesiones_activas']) ?></div>
         <div class="stat-label">Sesiones Activas</div>
     </div>
+    </div>
 </div>
 
-<div class="row">
+<div class="row mt-2">
     <!-- Información del usuario -->
     <div class="col-6">
         <div class="card">

@@ -1,465 +1,496 @@
 /**
- * JavaScript principal del sistema
- * Sistema de Gestión - PHP8 + MariaDB
+ * Sistema de Gestión - JavaScript Principal CORREGIDO
+ * Manejo definitivo de logout sin duplicados
  */
 
-// Configuración global
+// Objeto principal del sistema
 const SistemaGestion = {
-    // Configuración
-    config: {
-        confirmDelete: '¿Está seguro de que desea eliminar este elemento?',
-        confirmAction: '¿Está seguro de realizar esta acción?',
-        loadingText: 'Cargando...',
-        errorText: 'Ha ocurrido un error',
-        successText: 'Operación realizada correctamente'
-    },
+    
+    // Flag para evitar múltiples inicializaciones
+    initialized: false,
     
     // Inicialización
     init() {
+        if (this.initialized) return; // Evitar múltiples inicializaciones
+        
         this.setupEventListeners();
-        this.initComponents();
-        this.setupAjaxDefaults();
+        this.setupNotifications();
+        this.setupTableSearch();
+        this.setupFormValidation();
+        this.setupTooltips();
+        this.setupModals();
+        this.setupLogout(); // Manejo centralizado de logout
+        
+        this.initialized = true;
+    },
+
+    // Configurar logout DEFINITIVO
+    setupLogout() {
+        // Remover event listeners previos para evitar duplicados
+        this.removeExistingLogoutListeners();
+        
+        // Configurar manejo único de logout
+        this.attachLogoutListeners();
     },
     
-    // Configurar event listeners globales
-    setupEventListeners() {
-        // Confirmaciones de eliminación
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-confirm-delete]') || e.target.closest('[data-confirm-delete]')) {
-                const element = e.target.matches('[data-confirm-delete]') ? e.target : e.target.closest('[data-confirm-delete]');
-                if (!confirm(this.config.confirmDelete)) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
+    // Remover listeners existentes
+    removeExistingLogoutListeners() {
+        // Remover todos los event listeners de logout existentes
+        const logoutElements = document.querySelectorAll('a[href*="action=logout"], [data-action="logout"]');
+        logoutElements.forEach(element => {
+            // Clonar elemento para remover todos los event listeners
+            const newElement = element.cloneNode(true);
+            element.parentNode.replaceChild(newElement, element);
+        });
+    },
+    
+    // Adjuntar listeners únicos
+    attachLogoutListeners() {
+        // Usar delegación de eventos para evitar duplicados
+        document.addEventListener('click', this.handleLogoutClick.bind(this), true);
+    },
+    
+    // Manejar click de logout
+    handleLogoutClick(e) {
+        const target = e.target.closest('a[href*="action=logout"], [data-action="logout"]');
+        
+        if (target) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
             
-            // Confirmaciones de acción
-            if (e.target.matches('[data-confirm]') || e.target.closest('[data-confirm]')) {
-                const element = e.target.matches('[data-confirm]') ? e.target : e.target.closest('[data-confirm]');
-                const message = element.dataset.confirm || this.config.confirmAction;
-                if (!confirm(message)) {
-                    e.preventDefault();
-                    return false;
-                }
-            }
-        });
-        
-        // Auto-submit en formularios
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('[data-auto-submit]')) {
-                const form = e.target.closest('form');
-                if (form) {
-                    form.submit();
-                }
-            }
-        });
-        
-        // Toggle de elementos
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-toggle]') || e.target.closest('[data-toggle]')) {
-                e.preventDefault();
-                const element = e.target.matches('[data-toggle]') ? e.target : e.target.closest('[data-toggle]');
-                const target = document.querySelector(element.dataset.toggle);
-                if (target) {
-                    target.classList.toggle('show');
-                }
-            }
-        });
-        
-        // Copiar al portapapeles
-        document.addEventListener('click', (e) => {
-            if (e.target.matches('[data-copy]') || e.target.closest('[data-copy]')) {
-                e.preventDefault();
-                const element = e.target.matches('[data-copy]') ? e.target : e.target.closest('[data-copy]');
-                this.copyToClipboard(element.dataset.copy);
-            }
-        });
+            this.confirmLogout();
+            return false;
+        }
     },
-    
-    // Inicializar componentes
-    initComponents() {
-        // Auto-ocultar alertas
-        this.autoHideAlerts();
-        
-        // Inicializar tooltips (implementación básica)
-        this.initTooltips();
-        
-        // Inicializar tablas
-        this.initTables();
-        
-        // Inicializar formularios
-        this.initForms();
-    },
-    
-    // Configurar AJAX por defecto
-    setupAjaxDefaults() {
-        // Aquí se puede configurar fetch defaults si es necesario
-    },
-    
-    // Auto-ocultar alertas
-    autoHideAlerts() {
-        const alerts = document.querySelectorAll('.alert:not(.alert-error)');
-        alerts.forEach(alert => {
+
+    // Confirmar logout
+    confirmLogout() {
+        // Usar confirm nativo para evitar duplicados
+        if (confirm('¿Está seguro de que desea cerrar sesión?')) {
+            this.showNotification('Cerrando sesión...', 'info', 1000);
+            
+            // Pequeño delay para mostrar la notificación
             setTimeout(() => {
-                this.fadeOut(alert);
-            }, 5000);
-        });
+                window.location.href = 'index.php?action=logout';
+            }, 500);
+        }
     },
-    
-    // Inicializar tooltips básicos
-    initTooltips() {
-        const elements = document.querySelectorAll('[data-tooltip]');
-        elements.forEach(element => {
-            element.addEventListener('mouseenter', (e) => {
-                this.showTooltip(e.target, e.target.dataset.tooltip);
-            });
-            
-            element.addEventListener('mouseleave', (e) => {
-                this.hideTooltip();
-            });
-        });
+
+    // Event listeners principales
+    setupEventListeners() {
+        // Manejar navegación
+        this.setupNavigation();
+        
+        // Manejar forms
+        this.setupForms();
+        
+        // Manejar botones de confirmación (EXCEPTO logout)
+        this.setupConfirmButtons();
     },
-    
-    // Inicializar funcionalidades de tablas
-    initTables() {
-        // Funcionalidad de búsqueda en tablas
-        const searchInputs = document.querySelectorAll('[data-table-search]');
-        searchInputs.forEach(input => {
-            const tableId = input.dataset.tableSearch;
-            const table = document.getElementById(tableId);
-            if (table) {
-                input.addEventListener('input', (e) => {
-                    this.filterTable(table, e.target.value);
-                });
+
+    // Configurar navegación
+    setupNavigation() {
+        // Marcar item activo en navegación
+        const currentPath = window.location.pathname + window.location.search;
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        navLinks.forEach(link => {
+            if (link.href && currentPath.includes(link.getAttribute('href'))) {
+                link.classList.add('active');
             }
         });
-        
-        // Ordenamiento de tablas
-        const sortableHeaders = document.querySelectorAll('[data-sort]');
-        sortableHeaders.forEach(header => {
-            header.style.cursor = 'pointer';
-            header.addEventListener('click', (e) => {
-                this.sortTable(header);
+
+        // Manejar colapso de sidebar en móvil
+        const sidebarToggle = document.getElementById('sidebar-toggle') || document.getElementById('sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                const overlay = document.getElementById('sidebarOverlay');
+                
+                if (sidebar) sidebar.classList.toggle('show');
+                if (overlay) overlay.classList.toggle('show');
+                
+                // Para layout antiguo
+                document.body.classList.toggle('sidebar-collapsed');
             });
-        });
+        }
     },
-    
-    // Inicializar funcionalidades de formularios
-    initForms() {
-        // Validación en tiempo real
-        const forms = document.querySelectorAll('form[data-validate]');
+
+    // Configurar formularios
+    setupForms() {
+        const forms = document.querySelectorAll('form[data-ajax]');
         forms.forEach(form => {
             form.addEventListener('submit', (e) => {
-                if (!this.validateForm(form)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-            
-            // Validación en tiempo real de campos
-            const inputs = form.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('blur', () => {
-                    this.validateField(input);
-                });
+                e.preventDefault();
+                this.submitForm(form);
             });
         });
-        
-        // Confirmación de contraseñas
-        const passwordConfirms = document.querySelectorAll('[data-password-confirm]');
-        passwordConfirms.forEach(confirm => {
-            const passwordField = document.getElementById(confirm.dataset.passwordConfirm);
-            if (passwordField) {
-                const validatePasswords = () => {
-                    if (passwordField.value !== confirm.value) {
-                        confirm.setCustomValidity('Las contraseñas no coinciden');
-                    } else {
-                        confirm.setCustomValidity('');
-                    }
-                };
-                
-                passwordField.addEventListener('input', validatePasswords);
-                confirm.addEventListener('input', validatePasswords);
+    },
+
+    // Configurar botones de confirmación (SIN logout)
+    setupConfirmButtons() {
+        document.addEventListener('click', (e) => {
+            const confirmButton = e.target.closest('[data-confirm]:not([href*="logout"]):not([data-action="logout"])');
+            
+            if (confirmButton) {
+                const message = confirmButton.getAttribute('data-confirm');
+                if (!confirm(message)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        });
+
+        // Botones de confirmación para eliminar
+        document.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('[data-confirm-delete]');
+            
+            if (deleteButton) {
+                if (!confirm('¿Está seguro de que desea eliminar este elemento? Esta acción no se puede deshacer.')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
             }
         });
     },
-    
-    // Utilidades
-    fadeOut(element, callback) {
-        element.style.transition = 'opacity 0.5s ease';
-        element.style.opacity = '0';
-        setTimeout(() => {
-            element.style.display = 'none';
-            if (callback) callback();
-        }, 500);
+
+    // Sistema de notificaciones
+    setupNotifications() {
+        // Crear contenedor si no existe
+        if (!document.getElementById('notifications-container')) {
+            const container = document.createElement('div');
+            container.id = 'notifications-container';
+            container.className = 'notifications-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                max-width: 400px;
+            `;
+            document.body.appendChild(container);
+        }
     },
-    
-    fadeIn(element) {
-        element.style.display = 'block';
-        element.style.opacity = '0';
-        element.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => {
-            element.style.opacity = '1';
-        }, 10);
-    },
-    
-    showTooltip(element, text) {
-        this.hideTooltip(); // Ocultar tooltip anterior
-        
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip-custom';
-        tooltip.textContent = text;
-        tooltip.style.cssText = `
-            position: absolute;
-            background: var(--bg-dark);
-            color: var(--text-white);
-            padding: var(--spacing-sm);
-            border-radius: var(--border-radius-sm);
-            font-size: var(--font-size-xs);
-            z-index: 1000;
-            pointer-events: none;
-            box-shadow: var(--shadow-md);
+
+    // Mostrar notificación
+    showNotification(message, type = 'info', duration = 5000) {
+        const container = document.getElementById('notifications-container');
+        if (!container) return;
+
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.style.cssText = `
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 10px;
+            padding: 16px;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid ${this.getNotificationColor(type)};
         `;
         
-        document.body.appendChild(tooltip);
-        
-        const rect = element.getBoundingClientRect();
-        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-        tooltip.style.top = rect.top - tooltip.offsetHeight - 5 + 'px';
-        
-        this.currentTooltip = tooltip;
-    },
-    
-    hideTooltip() {
-        if (this.currentTooltip) {
-            this.currentTooltip.remove();
-            this.currentTooltip = null;
+        const iconMap = {
+            success: '✓',
+            error: '✗',
+            warning: '⚠',
+            info: 'ℹ'
+        };
+
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-weight: bold; color: ${this.getNotificationColor(type)};">${iconMap[type] || iconMap.info}</span>
+                <span style="flex: 1;">${message}</span>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.5;">×</button>
+            </div>
+        `;
+
+        container.appendChild(notification);
+
+        // Auto-remover después del tiempo especificado
+        if (duration > 0) {
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOut 0.3s ease-out';
+                    setTimeout(() => notification.remove(), 300);
+                }
+            }, duration);
         }
     },
     
-    copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            this.showNotification('Copiado al portapapeles', 'success');
-        }).catch(() => {
-            this.showNotification('Error al copiar', 'error');
+    // Obtener color de notificación
+    getNotificationColor(type) {
+        const colors = {
+            success: '#28a745',
+            error: '#dc3545',
+            warning: '#ffc107',
+            info: '#17a2b8'
+        };
+        return colors[type] || colors.info;
+    },
+
+    // Búsqueda en tablas
+    setupTableSearch() {
+        const searchInputs = document.querySelectorAll('[data-table-search]');
+        searchInputs.forEach(input => {
+            const tableId = input.getAttribute('data-table-search');
+            const table = document.getElementById(tableId);
+            
+            if (table) {
+                input.addEventListener('input', () => {
+                    this.filterTable(table, input.value);
+                });
+            }
         });
     },
-    
+
     // Filtrar tabla
     filterTable(table, searchTerm) {
-        const rows = table.querySelectorAll('tbody tr');
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+
+        const rows = tbody.querySelectorAll('tr');
         const term = searchTerm.toLowerCase();
-        
+
         rows.forEach(row => {
             const text = row.textContent.toLowerCase();
             row.style.display = text.includes(term) ? '' : 'none';
         });
     },
-    
-    // Ordenar tabla
-    sortTable(header) {
-        const table = header.closest('table');
-        const tbody = table.querySelector('tbody');
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        const index = Array.from(header.parentNode.children).indexOf(header);
-        const isAsc = !header.classList.contains('sort-asc');
-        
-        // Limpiar otras columnas
-        header.parentNode.querySelectorAll('th').forEach(th => {
-            th.classList.remove('sort-asc', 'sort-desc');
+
+    // Validación de formularios
+    setupFormValidation() {
+        const forms = document.querySelectorAll('form[data-validate]');
+        forms.forEach(form => {
+            form.addEventListener('submit', (e) => {
+                if (!this.validateForm(form)) {
+                    e.preventDefault();
+                }
+            });
         });
-        
-        // Marcar columna actual
-        header.classList.add(isAsc ? 'sort-asc' : 'sort-desc');
-        
-        rows.sort((a, b) => {
-            const aText = a.children[index].textContent.trim();
-            const bText = b.children[index].textContent.trim();
-            
-            // Intentar comparar como números
-            const aNum = parseFloat(aText);
-            const bNum = parseFloat(bText);
-            
-            if (!isNaN(aNum) && !isNaN(bNum)) {
-                return isAsc ? aNum - bNum : bNum - aNum;
-            }
-            
-            // Comparar como texto
-            return isAsc ? aText.localeCompare(bText) : bText.localeCompare(aText);
-        });
-        
-        rows.forEach(row => tbody.appendChild(row));
     },
-    
+
     // Validar formulario
     validateForm(form) {
         let isValid = true;
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        inputs.forEach(input => {
-            if (!this.validateField(input)) {
-                isValid = false;
-            }
-        });
-        
-        return isValid;
-    },
-    
-    // Validar campo individual
-    validateField(field) {
-        let isValid = true;
-        const value = field.value.trim();
-        
-        // Limpiar errores anteriores
-        this.clearFieldError(field);
-        
-        // Validaciones requeridas
-        if (field.hasAttribute('required') && !value) {
-            this.showFieldError(field, 'Este campo es obligatorio');
-            isValid = false;
-        }
-        
-        // Validación de email
-        if (field.type === 'email' && value) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(value)) {
-                this.showFieldError(field, 'Ingrese un email válido');
-                isValid = false;
-            }
-        }
-        
-        // Validación de longitud mínima
-        if (field.hasAttribute('minlength') && value.length < parseInt(field.getAttribute('minlength'))) {
-            this.showFieldError(field, `Mínimo ${field.getAttribute('minlength')} caracteres`);
-            isValid = false;
-        }
-        
-        return isValid;
-    },
-    
-    showFieldError(field, message) {
-        field.classList.add('error');
-        let errorElement = field.parentNode.querySelector('.field-error');
-        
-        if (!errorElement) {
-            errorElement = document.createElement('div');
-            errorElement.className = 'field-error';
+        const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
 
-            errorElement.style.cssText = 'color: var(--color-error); font-size: var(--font-size-xs); margin-top: var(--spacing-xs);';
-            field.parentNode.appendChild(errorElement);
-        }
-        
-        errorElement.textContent = message;
-    },
-    
-    clearFieldError(field) {
-        field.classList.remove('error');
-        const errorElement = field.parentNode.querySelector('.field-error');
-        if (errorElement) {
-            errorElement.remove();
-        }
-    },
-    
-    // Mostrar notificación
-    showNotification(message, type = 'info', duration = 3000) {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} notification`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-            min-width: 300px;
-            box-shadow: var(--shadow-lg);
-        `;
-        
-        document.body.appendChild(notification);
-        
-        // Auto-ocultar
-        setTimeout(() => {
-            this.fadeOut(notification, () => notification.remove());
-        }, duration);
-    },
-    
-    // Realizar petición AJAX
-    async request(url, options = {}) {
-        const defaultOptions = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        };
-        
-        const config = { ...defaultOptions, ...options };
-        
-        try {
-            const response = await fetch(url, config);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-                return await response.json();
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                this.showFieldError(input, 'Este campo es obligatorio');
+                isValid = false;
             } else {
-                return await response.text();
-            }
-        } catch (error) {
-            console.error('Request failed:', error);
-            this.showNotification('Error de conexión', 'error');
-            throw error;
-        }
-    },
-    
-    // Cargar contenido dinámico
-    async loadContent(url, container) {
-        try {
-            const content = await this.request(url);
-            document.querySelector(container).innerHTML = content;
-            this.initComponents(); // Re-inicializar componentes
-        } catch (error) {
-            this.showNotification('Error al cargar contenido', 'error');
-        }
-    },
-    
-    // Abrir modal básico
-    openModal(title, content, buttons = []) {
-        const modal = document.createElement('div');
-        modal.className = 'modal show';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>${title}</h3>
-                    <button type="button" class="btn-close" data-modal-close>&times;</button>
-                </div>
-                <div class="modal-body">
-                    ${content}
-                </div>
-                <div class="modal-footer">
-                    ${buttons.map(btn => `<button type="button" class="btn btn-${btn.type || 'secondary'}" data-modal-close="${btn.close !== false}">${btn.text}</button>`).join('')}
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Event listeners para cerrar
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target.matches('[data-modal-close]')) {
-                this.closeModal(modal);
+                this.clearFieldError(input);
             }
         });
-        
-        return modal;
+
+        // Validaciones específicas
+        const emailInputs = form.querySelectorAll('input[type="email"]');
+        emailInputs.forEach(input => {
+            if (input.value && !this.isValidEmail(input.value)) {
+                this.showFieldError(input, 'Email inválido');
+                isValid = false;
+            }
+        });
+
+        const passwordInputs = form.querySelectorAll('input[data-min-length]');
+        passwordInputs.forEach(input => {
+            const minLength = parseInt(input.getAttribute('data-min-length'));
+            if (input.value && input.value.length < minLength) {
+                this.showFieldError(input, `Mínimo ${minLength} caracteres`);
+                isValid = false;
+            }
+        });
+
+        return isValid;
     },
-    
-    closeModal(modal) {
-        modal.remove();
+
+    // Mostrar error en campo
+    showFieldError(input, message) {
+        this.clearFieldError(input);
+        
+        input.style.borderColor = '#dc3545';
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'field-error';
+        errorDiv.style.cssText = 'color: #dc3545; font-size: 0.875rem; margin-top: 4px;';
+        errorDiv.textContent = message;
+        
+        input.parentNode.appendChild(errorDiv);
+    },
+
+    // Limpiar error de campo
+    clearFieldError(input) {
+        input.style.borderColor = '';
+        const errorDiv = input.parentNode.querySelector('.field-error');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    },
+
+    // Validar email
+    isValidEmail(email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    },
+
+    // Configurar tooltips
+    setupTooltips() {
+        document.addEventListener('mouseenter', (e) => {
+            const element = e.target.closest('[data-tooltip]');
+            if (element) {
+                this.showTooltip(element, element.getAttribute('data-tooltip'));
+            }
+        }, true);
+        
+        document.addEventListener('mouseleave', (e) => {
+            const element = e.target.closest('[data-tooltip]');
+            if (element) {
+                this.hideTooltip();
+            }
+        }, true);
+    },
+
+    // Mostrar tooltip
+    showTooltip(element, text) {
+        this.hideTooltip(); // Limpiar tooltip anterior
+        
+        const tooltip = document.createElement('div');
+        tooltip.id = 'system-tooltip';
+        tooltip.style.cssText = `
+            position: absolute;
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            z-index: 10001;
+            pointer-events: none;
+        `;
+        tooltip.textContent = text;
+        document.body.appendChild(tooltip);
+
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+        tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+    },
+
+    // Ocultar tooltip
+    hideTooltip() {
+        const tooltip = document.getElementById('system-tooltip');
+        if (tooltip) {
+            tooltip.remove();
+        }
+    },
+
+    // Configurar modales
+    setupModals() {
+        // Cerrar modales con Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const openModals = document.querySelectorAll('.modal[style*="display: flex"]');
+                openModals.forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+    },
+
+    // Enviar formulario por AJAX
+    async submitForm(form) {
+        const formData = new FormData(form);
+        const action = form.getAttribute('action') || window.location.href;
+        
+        try {
+            this.showNotification('Enviando...', 'info');
+            
+            const response = await fetch(action, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                this.showNotification(result.message || 'Operación completada', 'success');
+                
+                if (result.redirect) {
+                    setTimeout(() => {
+                        window.location.href = result.redirect;
+                    }, 1000);
+                }
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        } catch (error) {
+            this.showNotification('Error al procesar la solicitud', 'error');
+            console.error('Error:', error);
+        }
+    },
+
+    // Utilidades de UI
+    toggleElement(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.style.display = element.style.display === 'none' ? '' : 'none';
+        }
+    },
+
+    // Confirmar acción
+    confirm(message, callback) {
+        if (confirm(message)) {
+            callback();
+        }
+    },
+
+    // Formatear fecha
+    formatDate(date, format = 'dd/mm/yyyy') {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+
+        return format
+            .replace('dd', day)
+            .replace('mm', month)
+            .replace('yyyy', year)
+            .replace('hh', hours)
+            .replace('ii', minutes);
+    },
+
+    // Copiar al portapapeles
+    async copyToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            this.showNotification('Copiado al portapapeles', 'success', 2000);
+        } catch (err) {
+            // Fallback para navegadores más antiguos
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            this.showNotification('Copiado al portapapeles', 'success', 2000);
+        }
     }
 };
+
+// CSS para animaciones de notificaciones
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {

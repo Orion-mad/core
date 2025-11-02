@@ -93,7 +93,7 @@ class Auth {
                 // Desactivar sesión en base de datos
                 $this->db->update(
                     'sesiones',
-                    ['activa' => false],
+                    ['activa' => 0],
                     'id = :session_id',
                     ['session_id' => $_SESSION['session_id']]
                 );

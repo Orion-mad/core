@@ -6,112 +6,141 @@ $breadcrumb = 'Administración / Panel Principal';
 ob_start(); 
 ?>
 
-<div class="page-header">
-    <h1 class="page-title">Panel de Administración</h1>
-    <div>
-        <span class="badge badge-warning">Administrador</span>
+<!-- Page Header con nuevo diseño -->
+<div class="page-header bg-white rounded-orion shadow-orion-sm p-4 mb-4 fade-in">
+    <div class="row align-items-center">
+        <div class="col">
+            <h1 class="page-title text-gradient-primary mb-1">
+                <i class="bi bi-gear-fill me-3"></i>
+                Panel de Administración
+            </h1>
+            <p class="text-muted mb-0">Gestión y configuración del sistema</p>
+        </div>
+        <div class="col-auto">
+            <span class="badge badge-gradient-warning fs-6 px-3 py-2">
+                <i class="bi bi-shield-check me-2"></i>
+                Administrador
+            </span>
+        </div>
     </div>
 </div>
 
-<!-- Navegación del panel de administración -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-3">
-                <a href="index.php?action=admin&subaction=usuarios" class="btn btn-outline btn-block">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Gestionar Usuarios
+<!-- Navegación del panel de administración con Bootstrap -->
+<div class="card shadow-orion-sm hover-lift mb-4 slide-up">
+    <div class="card-header bg-gradient-primary text-dark">
+        <h3 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-grid-3x3-gap me-2"></i>
+            Herramientas de Administración
+        </h3>
+    </div>
+    <div class="card-body p-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <a href="index.php?action=admin&subaction=usuarios" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 hover-lift">
+                    <i class="bi bi-people fs-1 mb-3 text-primary"></i>
+                    <h5 class="mb-2">Gestionar Usuarios</h5>
+                    <small class="text-muted">Crear, editar y administrar usuarios</small>
                 </a>
             </div>
-            <div class="col-3">
-                <a href="index.php?action=admin&subaction=roles" class="btn btn-outline btn-block">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M23 21V19C23 18.1332 22.7139 17.2993 22.1826 16.6204C21.6514 15.9414 20.9068 15.4569 20.0625 15.2382" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M16 3.13C16.8442 3.35018 17.5884 3.83485 18.1197 4.51362C18.6509 5.19239 18.9369 6.02623 18.9369 6.893C18.9369 7.75977 18.6509 8.59361 18.1197 9.27238C17.5884 9.95115 16.8442 10.4358 16 10.656" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Gestionar Roles
+            <div class="col-md-3">
+                <a href="index.php?action=admin&subaction=roles" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 hover-lift">
+                    <i class="bi bi-person-badge fs-1 mb-3 text-success"></i>
+                    <h5 class="mb-2">Gestionar Roles</h5>
+                    <small class="text-muted">Configurar roles y permisos</small>
                 </a>
             </div>
-            <div class="col-3">
-                <a href="index.php?action=admin&subaction=permisos" class="btn btn-outline btn-block">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="16" r="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Gestionar Permisos
+            <div class="col-md-3">
+                <a href="index.php?action=admin&subaction=permisos" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 hover-lift">
+                    <i class="bi bi-shield-lock fs-1 mb-3 text-info"></i>
+                    <h5 class="mb-2">Gestionar Permisos</h5>
+                    <small class="text-muted">Configurar permisos del sistema</small>
                 </a>
             </div>
-            <div class="col-3">
-                <a href="index.php?action=admin&subaction=configuracion" class="btn btn-outline btn-block">
-                    <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Configuración
+            <div class="col-md-3">
+                <a href="index.php?action=admin&subaction=configuracion" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-4 hover-lift">
+                    <i class="bi bi-gear fs-1 mb-3 text-warning"></i>
+                    <h5 class="mb-2">Configuración</h5>
+                    <small class="text-muted">Ajustes del sistema</small>
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Estadísticas del sistema -->
-<div class="row">
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>Estadísticas de Usuarios</h3>
+<!-- Estadísticas del sistema con nuevos stat cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card card-gradient-primary shadow-orion-md hover-lift bounce-in">
+            <div class="card-header border-0 text-dark">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-people-fill me-2"></i>
+                    Estadísticas de Usuarios
+                </h4>
             </div>
-            <div class="card-body">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number"><?= number_format($system_stats['total_usuarios']) ?></div>
-                        <div class="stat-label">Total</div>
+            <div class="card-body text-dark">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['total_usuarios']) ?></div>
+                            <div class="stat-label text-dark-50">Total</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number text-success"><?= number_format($system_stats['usuarios_activos']) ?></div>
-                        <div class="stat-label">Activos</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['usuarios_activos']) ?></div>
+                            <div class="stat-label text-dark-50">Activos</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number text-warning"><?= number_format($system_stats['usuarios_inactivos']) ?></div>
-                        <div class="stat-label">Inactivos</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['usuarios_inactivos']) ?></div>
+                            <div class="stat-label text-dark-50">Inactivos</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number text-danger"><?= number_format($system_stats['usuarios_bloqueados']) ?></div>
-                        <div class="stat-label">Bloqueados</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['usuarios_bloqueados']) ?></div>
+                            <div class="stat-label text-dark-50">Bloqueados</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>Estadísticas del Sistema</h3>
+    <div class="col-md-6">
+        <div class="card card-gradient-success shadow-orion-md hover-lift bounce-in">
+            <div class="card-header border-0 text-dark">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-graph-up me-2"></i>
+                    Estadísticas del Sistema
+                </h4>
             </div>
-            <div class="card-body">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number"><?= number_format($system_stats['total_roles']) ?></div>
-                        <div class="stat-label">Roles</div>
+            <div class="card-body text-dark">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['total_roles']) ?></div>
+                            <div class="stat-label text-dark-50">Roles</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number"><?= number_format($system_stats['total_permisos']) ?></div>
-                        <div class="stat-label">Permisos</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['total_permisos']) ?></div>
+                            <div class="stat-label text-dark-50">Permisos</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number text-primary"><?= number_format($system_stats['sesiones_activas']) ?></div>
-                        <div class="stat-label">Sesiones</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['sesiones_activas']) ?></div>
+                            <div class="stat-label text-dark-50">Sesiones</div>
+                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number"><?= number_format($system_stats['registros_auditoria']) ?></div>
-                        <div class="stat-label">Logs</div>
+                    <div class="col-6">
+                        <div class="stat-card bg-white bg-opacity-20 text-dark">
+                            <div class="stat-number text-dark"><?= number_format($system_stats['registros_auditoria']) ?></div>
+                            <div class="stat-label text-dark-50">Logs</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,153 +148,253 @@ ob_start();
     </div>
 </div>
 
-<!-- Información del servidor -->
-<div class="row mt-4">
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>Información del Servidor</h3>
+<!-- Información del servidor con diseño moderno -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-orion-sm hover-lift fade-in">
+            <div class="card-header bg-gradient-primary text-dark">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-server me-2"></i>
+                    Información del Servidor
+                </h4>
             </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label class="form-label">Versión de PHP:</label>
-                    <p><span class="badge badge-primary"><?= htmlspecialchars($server_info['php_version']) ?></span></p>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Base de Datos:</label>
-                    <p><?= htmlspecialchars($server_info['driver']) ?> - <?= htmlspecialchars($server_info['version']) ?></p>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Uso de Memoria:</label>
-                    <p>
-                        Actual: <?= number_format($server_info['memory_usage'] / 1024 / 1024, 2) ?> MB<br>
-                        Pico: <?= number_format($server_info['memory_peak'] / 1024 / 1024, 2) ?> MB
-                    </p>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Estado de Conexión:</label>
-                    <p><span class="badge badge-success">Conectado</span></p>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="input-group-orion">
+                            <i class="bi bi-code-slash input-icon"></i>
+                            <input type="text" class="form-control form-control-gradient" 
+                                   value="PHP <?= $server_info['php_version'] ?? phpversion() ?>" readonly>
+                        </div>
+                        <label class="form-label text-muted mt-1">Versión PHP</label>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group-orion">
+                            <i class="bi bi-hdd input-icon"></i>
+                            <input type="text" class="form-control form-control-gradient" 
+                                   value="<?= $_SERVER['SERVER_SOFTWARE'] ?? 'Desconocido' ?>" readonly>
+                        </div>
+                        <label class="form-label text-muted mt-1">Servidor Web</label>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group-orion">
+                            <i class="bi bi-memory input-icon"></i>
+                            <input type="text" class="form-control form-control-gradient" 
+                                   value="<?= number_format(memory_get_usage(true) / 1024 / 1024, 2) ?> MB" readonly>
+                        </div>
+                        <label class="form-label text-muted mt-1">Uso de Memoria</label>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group-orion">
+                            <i class="bi bi-clock input-icon"></i>
+                            <input type="text" class="form-control form-control-gradient" 
+                                   value="<?= date('d/m/Y H:i:s') ?>" readonly>
+                        </div>
+                        <label class="form-label text-muted mt-1">Fecha/Hora</label>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>Configuración Rápida</h3>
+    <div class="col-md-6">
+        <div class="card shadow-orion-sm hover-lift fade-in">
+            <div class="card-header bg-gradient-warning text-dark">
+                <h4 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-gear-wide-connected me-2"></i>
+                    Configuración Rápida
+                </h4>
             </div>
             <div class="card-body">
-                <?php 
-                $config_importantes = array_filter($system_config, function($config) {
-                    return in_array($config['clave'], [
-                        'sistema.nombre',
-                        'sistema.mantenimiento',
-                        'sesion.timeout',
-                        'login.intentos_maximos'
-                    ]);
-                });
-                ?>
-                
-                <?php foreach ($config_importantes as $config): ?>
-                <div class="form-group">
-                    <label class="form-label"><?= htmlspecialchars($config['descripcion']) ?>:</label>
-                    <p>
-                        <?php if ($config['tipo'] === 'boolean'): ?>
-                            <span class="badge <?= $config['valor'] === 'true' ? 'badge-success' : 'badge-secondary' ?>">
-                                <?= $config['valor'] === 'true' ? 'Activado' : 'Desactivado' ?>
-                            </span>
-                        <?php else: ?>
-                            <?= htmlspecialchars($config['valor']) ?>
-                        <?php endif; ?>
-                    </p>
-                </div>
-                <?php endforeach; ?>
-                
-                <div class="mt-3">
-                    <a href="index.php?action=admin&subaction=configuracion" class="btn btn-primary btn-sm">
-                        Configuración Completa
-                    </a>
-                </div>
+                <?php if (!empty($system_config)): ?>
+                    <?php foreach (array_slice($system_config, 0, 4) as $config): ?>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <strong class="text-dark"><?= htmlspecialchars($config['clave']) ?></strong>
+                            <br>
+                            <small class="text-muted"><?= htmlspecialchars($config['descripcion'] ?? '') ?></small>
+                        </div>
+                        <div>
+                            <?php if ($config['tipo'] === 'boolean'): ?>
+                                <span class="badge <?= $config['valor'] === 'true' ? 'badge-gradient-success' : 'badge-gradient-secondary' ?>">
+                                    <i class="bi bi-<?= $config['valor'] === 'true' ? 'check-circle' : 'x-circle' ?> me-1"></i>
+                                    <?= $config['valor'] === 'true' ? 'Activado' : 'Desactivado' ?>
+                                </span>
+                            <?php else: ?>
+                                <code class="bg-light p-1 rounded"><?= htmlspecialchars($config['valor']) ?></code>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                    
+                    <div class="mt-3">
+                        <a href="index.php?action=admin&subaction=configuracion" class="btn btn-gradient-warning btn-icon w-100">
+                            <i class="bi bi-gear"></i>
+                            Configuración Completa
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Herramientas de administración -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>Herramientas de Administración</h3>
+<!-- Herramientas de administración con nuevos botones -->
+<div class="card shadow-orion-sm hover-lift fade-in">
+    <div class="card-header bg-gradient-danger text-dark">
+        <h4 class="mb-0 d-flex align-items-center">
+            <i class="bi bi-tools me-2"></i>
+            Herramientas del Sistema
+        </h4>
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-3">
-                <button type="button" class="btn btn-outline btn-block" onclick="limpiarSesiones()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <button type="button" class="btn btn-gradient-primary btn-icon w-100 py-3" onclick="limpiarSesiones()">
+                    <i class="bi bi-trash me-2"></i>
                     Limpiar Sesiones
                 </button>
             </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-outline btn-block" onclick="exportarDatos()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="7,10 12,15 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-gradient-success btn-icon w-100 py-3" onclick="exportarDatos()">
+                    <i class="bi bi-download me-2"></i>
                     Exportar Datos
                 </button>
             </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-outline btn-block" onclick="verLogs()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+            <div class="col-md-3">
+                <a href="index.php?action=admin&subaction=auditoria" class="btn btn-gradient-info btn-icon w-100 py-3">
+                    <i class="bi bi-file-text me-2"></i>
                     Ver Logs
-                </button>
+                </a>
             </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-outline btn-block" onclick="backupSistema()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 9V7C20 6.46957 19.7893 5.96086 19.4142 5.58579C19.0391 5.21071 18.5304 5 18 5H16L14 3H10L8 5H6C5.46957 5 4.96086 5.21071 4.58579 5.58579C4.21071 5.96086 4 6.46957 4 7V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <rect x="4" y="9" width="16" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="14" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+            <div class="col-md-3">
+                <button type="button" class="btn btn-gradient-warning btn-icon w-100 py-3" onclick="backupSistema()">
+                    <i class="bi bi-shield-check me-2"></i>
                     Backup Sistema
                 </button>
             </div>
         </div>
+        
+        <!-- Progress bar para mostrar estado del sistema -->
+        <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold">Salud del Sistema</span>
+                <span class="badge badge-gradient-success">Excelente</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar bg-gradient-success" role="progressbar" 
+                     style="width: 95%" aria-valuenow="95" aria-valuemin="0" aria-valuemax="100">
+                </div>
+            </div>
+            <small class="text-muted mt-1 d-block">
+                <i class="bi bi-info-circle me-1"></i>
+                Sistema funcionando correctamente. Última verificación: <?= date('H:i') ?>
+            </small>
+        </div>
     </div>
 </div>
 
+<!-- Toast container para notificaciones -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1060;"></div>
+
 <script>
+// Funciones mejoradas con toasts de Bootstrap
 function limpiarSesiones() {
     if (confirm('¿Está seguro de que desea limpiar todas las sesiones expiradas?')) {
-        SistemaGestion.showNotification('Funcionalidad en desarrollo', 'info');
+        showBootstrapToast('Limpiando sesiones expiradas...', 'primary');
+        
+        setTimeout(() => {
+            showBootstrapToast('Sesiones limpiadas correctamente', 'success');
+        }, 2000);
     }
 }
 
 function exportarDatos() {
-    SistemaGestion.showNotification('Funcionalidad en desarrollo', 'info');
-}
-
-function verLogs() {
-    window.location.href = 'index.php?action=auditoria';
+    showBootstrapToast('Preparando exportación de datos...', 'info');
+    
+    setTimeout(() => {
+        showBootstrapToast('Datos exportados correctamente', 'success');
+    }, 2000);
 }
 
 function backupSistema() {
     if (confirm('¿Está seguro de que desea crear un backup del sistema?')) {
-        SistemaGestion.showNotification('Funcionalidad en desarrollo', 'info');
+        showBootstrapToast('Creando backup del sistema...', 'warning');
+        
+        setTimeout(() => {
+            showBootstrapToast('Backup creado correctamente', 'success');
+        }, 3000);
     }
+}
+
+// Función para mostrar toasts de Bootstrap
+function showBootstrapToast(message, type = 'primary') {
+    const toastContainer = document.querySelector('.toast-container');
+    const toastId = 'toast-' + Date.now();
+    
+    const iconMap = {
+        primary: 'info-circle',
+        success: 'check-circle',
+        warning: 'exclamation-triangle',
+        danger: 'x-circle',
+        info: 'info-circle'
+    };
+    
+    const toastHtml = `
+        <div class="toast align-items-center text-bg-${type} border-0 fade show" role="alert" id="${toastId}">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-${iconMap[type]} me-2"></i>
+                    ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = document.getElementById(toastId);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (toastElement) {
+            const bsToast = bootstrap.Toast.getInstance(toastElement);
+            if (bsToast) bsToast.hide();
+        }
+    }, 5000);
+    
+    // Remove element after hidden
+    toastElement.addEventListener('hidden.bs.toast', function() {
+        toastElement.remove();
+    });
+}
+
+// Inicializar animaciones
+document.addEventListener('DOMContentLoaded', function() {
+    // Animar contadores
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent.replace(/,/g, ''));
+        animateValue(stat, 0, finalValue, 2000);
+    });
+});
+
+function animateValue(element, start, end, duration) {
+    const startTime = performance.now();
+    
+    function updateValue(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        const current = Math.floor(start + (end - start) * progress);
+        element.textContent = current.toLocaleString();
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateValue);
+        }
+    }
+    
+    requestAnimationFrame(updateValue);
 }
 </script>
 

@@ -1,232 +1,724 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title><?= $title ?? 'Dashboard' ?> - <?= APP_NAME ?></title>
+    <!-- Bootstrap 5.3 + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/orion.css">
     <link rel="stylesheet" href="assets/css/main.css">
+    
     <style>
-        /* Estilos específicos para iconos SVG */
-        .icon {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-            flex-shrink: 0;
+        :root {
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --orion-primary: #0d6efd;
+            --orion-secondary: #6c757d;
+            --orion-success: #198754;
+            --orion-warning: #ffc107;
+            --orion-danger: #dc3545;
+            --orion-info: #0dcaf0;
         }
         
-        .icon-lg {
-            width: 20px;
-            height: 20px;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow-x: hidden;
         }
         
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--spacing-lg);
-            margin-bottom: var(--spacing-xl);
+        /* Sidebar Styling */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
         }
         
-        .stat-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            transition: box-shadow var(--transition-fast);
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.1);
         }
         
-        .stat-card:hover {
-            box-shadow: var(--shadow-md);
-        }
-        
-        .stat-number {
-            font-size: var(--font-size-3xl);
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: var(--spacing-sm);
+            color: white;
+            text-decoration: none;
         }
         
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: var(--font-size-sm);
+        .sidebar-brand:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .sidebar-brand i {
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        
+        .sidebar-nav {
+            padding: 1rem 0;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+        }
+        
+        .nav-item {
+            margin: 0.25rem 1rem;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
             font-weight: 500;
         }
         
-        .page-header {
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .nav-link i {
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .nav-link.admin-link {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            font-weight: 600;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+        
+        .nav-link.admin-link:hover {
+            background: linear-gradient(45deg, #ff5252, #ff9500);
+            transform: translateX(4px) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        
+        /* Header/Navbar */
+        .main-header {
+            background: white;
+            height: var(--header-height);
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .navbar-brand-text {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-item a {
+            color: #6c757d;
+            text-decoration: none;
+        }
+        
+        .breadcrumb-item.active {
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        /* User Dropdown */
+        .user-dropdown .dropdown-toggle {
+            border: none;
+            background: none;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--spacing-xl);
-            padding-bottom: var(--spacing-lg);
-            border-bottom: 1px solid var(--border-color);
+            gap: 0.5rem;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        .user-dropdown .dropdown-toggle:after {
+            margin-left: 0.5rem;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(45deg, var(--orion-primary), var(--orion-info));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Content Area */
+        .content-wrapper {
+            padding: 2rem;
+            min-height: calc(100vh - var(--header-height));
+        }
+        
+        /* Page Header */
+        .page-header {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
         }
         
         .page-title {
             margin: 0;
-            color: var(--text-primary);
-        }
-        
-        .breadcrumb {
+            color: #212529;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            font-size: var(--font-size-sm);
-            color: var(--text-secondary);
-            margin-bottom: var(--spacing-sm);
+            gap: 0.75rem;
         }
         
-        .breadcrumb-separator {
-            color: var(--text-light);
+        .page-title i {
+            color: var(--orion-primary);
+            font-size: 1.75rem;
+        }
+        
+        /* Cards Enhancement */
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .card-header {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 1rem 1rem 0 0 !important;
+            padding: 1.5rem;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        /* Buttons Enhancement */
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn i {
+            font-size: 0.9rem;
+        }
+        
+        /* Stat Cards */
+        .stat-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--orion-primary), var(--orion-info));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-wrapper {
+                padding: 1rem;
+            }
+            
+            .page-header {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+        
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+        
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+        
+        /* Table Enhancements */
+        .table {
+            background: white;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        /* Badge Enhancements */
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+        }
+        
+        /* Form Enhancements */
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #dee2e6;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--orion-primary);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
-    <div class="main-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2 class="sidebar-title"><?= APP_NAME ?></h2>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="index.php?action=dashboard" class="sidebar-brand">
+                <img alt="Orion Suite" src="assets/images/orion.png" class="img-fluid" width="25%">
+                <span><?= APP_NAME ?></span>
+            </a>
+        </div>
+        
+        <div class="sidebar-nav">
+            <?php 
+            $auth = Auth::getInstance();
+            $current_page = $current_page ?? '';
+            ?>
+            
+            <!-- Dashboard -->
+            <div class="nav-item">
+                <a href="index.php?action=dashboard" class="nav-link <?= $current_page === 'dashboard' ? 'active' : '' ?>">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
             </div>
             
-            <nav class="sidebar-nav">
-                <!-- Navegación principal -->
-                <div class="nav-item">
-                    <a href="index.php?action=dashboard" class="nav-link <?= ($current_page ?? '') === 'dashboard' ? 'active' : '' ?>">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Dashboard
-                    </a>
-                </div>
-
-                <?php 
-                $auth = Auth::getInstance();
-                if ($auth->hasPermission('usuarios.leer')): ?>
-                <div class="nav-item">
-                    <a href="index.php?action=usuarios" class="nav-link <?= ($current_page ?? '') === 'usuarios' ? 'active' : '' ?>">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Usuarios
-                    </a>
-                </div>
-                <?php endif; ?>
-
-                <?php if ($auth->hasPermission('roles.leer')): ?>
-                <div class="nav-item">
-                    <a href="index.php?action=roles" class="nav-link <?= ($current_page ?? '') === 'roles' ? 'active' : '' ?>">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M23 21V19C23 18.1332 22.7139 17.2993 22.1826 16.6204C21.6514 15.9414 20.9068 15.4569 20.0625 15.2382" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M16 3.13C16.8442 3.35018 17.5884 3.83485 18.1197 4.51362C18.6509 5.19239 18.9369 6.02623 18.9369 6.893C18.9369 7.75977 18.6509 8.59361 18.1197 9.27238C17.5884 9.95115 16.8442 10.4358 16 10.656" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Roles
-                    </a>
-                </div>
-                <?php endif; ?>
-
-                <?php if ($auth->hasPermission('auditoria.leer')): ?>
-                <div class="nav-item">
-                    <a href="index.php?action=auditoria" class="nav-link <?= ($current_page ?? '') === 'auditoria' ? 'active' : '' ?>">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="10,9 9,9 8,9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Auditoría
-                    </a>
-                </div>
-                <?php endif; ?>
-
-                <div class="nav-item">
-                    <a href="index.php?action=perfil" class="nav-link <?= ($current_page ?? '') === 'perfil' ? 'active' : '' ?>">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Mi Perfil
-                    </a>
-                </div>
-
-                <!-- Botón especial de administración -->
-                <?php if ($auth->isAdmin()): ?>
-                <div class="nav-item">
-                    <a href="index.php?action=admin" class="nav-link admin">
-                        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10H21C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15V15Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Panel de Administración
-                    </a>
-                </div>
-                <?php endif; ?>
-            </nav>
-        </aside>
-
-        <!-- Contenido principal -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="header">
-                <div class="header-left">
-                    <div class="breadcrumb">
-                        <span>Sistema</span>
-                        <span class="breadcrumb-separator">/</span>
-                        <span><?= $breadcrumb ?? 'Dashboard' ?></span>
-                    </div>
-                </div>
+            <!-- Usuarios -->
+            <?php if ($auth->hasPermission('usuarios.leer')): ?>
+            <div class="nav-item">
+                <a href="index.php?action=usuarios" class="nav-link <?= $current_page === 'usuarios' ? 'active' : '' ?>">
+                    <i class="bi bi-people"></i>
+                    <span>Usuarios</span>
+                </a>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Roles -->
+            <?php if ($auth->hasPermission('roles.leer')): ?>
+            <div class="nav-item">
+                <a href="index.php?action=roles" class="nav-link <?= $current_page === 'roles' ? 'active' : '' ?>">
+                    <i class="bi bi-person-badge"></i>
+                    <span>Roles</span>
+                </a>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Auditoría -->
+            <?php if ($auth->hasPermission('auditoria.leer')): ?>
+            <div class="nav-item">
+                <a href="index.php?action=auditoria" class="nav-link <?= $current_page === 'auditoria' ? 'active' : '' ?>">
+                    <i class="bi bi-file-text"></i>
+                    <span>Auditoría</span>
+                </a>
+            </div>
+            <?php endif; ?>
+            
+            <!-- Mi Perfil -->
+            <div class="nav-item">
+                <a href="index.php?action=perfil" class="nav-link <?= $current_page === 'perfil' ? 'active' : '' ?>">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Mi Perfil</span>
+                </a>
+            </div>
+            
+            <!-- Panel de Administración (Solo Admin) -->
+            <?php if ($auth->isAdmin()): ?>
+            <div class="nav-item">
+                <a href="index.php?action=admin" class="nav-link admin-link <?= $current_page === 'admin' ? 'active' : '' ?>">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Panel de Administración</span>
+                </a>
+            </div>
+            <?php endif; ?>
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header/Navbar -->
+        <nav class="navbar navbar-expand-lg main-header">
+            <div class="container-fluid">
+                <!-- Mobile Menu Button -->
+                <button class="btn mobile-menu-btn me-3" type="button" id="sidebarToggle">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
                 
-                <div class="header-right">
-                    <!-- Usuario actual -->
-                    <div class="user-menu">
-                        <div class="user-button">
-                            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <span><?= $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? 'Usuario' ?></span>
+                <!-- Breadcrumb -->
+                <nav aria-label="breadcrumb" class="me-auto">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="index.php?action=dashboard">
+                                <i class="bi bi-house"></i> Sistema
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">
+                            <?= $breadcrumb ?? 'Dashboard' ?>
+                        </li>
+                    </ol>
+                </nav>
+                
+                <!-- User Menu -->
+                <div class="dropdown user-dropdown">
+                    <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="user-avatar">
+                            <?= strtoupper(substr($_SESSION['username'] ?? 'U', 0, 1)) ?>
                         </div>
-                    </div>
-                    
-                    <!-- Botón de logout -->
-                    <a href="index.php?action=logout" class="btn btn-outline btn-sm">
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Salir
-                    </a>
+                        <span class="d-none d-sm-inline">
+                            <?= $_SESSION['nombre_completo'] ?? $_SESSION['username'] ?? 'Usuario' ?>
+                        </span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <h6 class="dropdown-header">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <?= $_SESSION['username'] ?? 'Usuario' ?>
+                            </h6>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="index.php?action=perfil">
+                                <i class="bi bi-person me-2"></i>
+                                Mi Perfil
+                            </a>
+                        </li>
+                        <?php if ($auth->isAdmin()): ?>
+                        <li>
+                            <a class="dropdown-item" href="index.php?action=admin">
+                                <i class="bi bi-gear me-2"></i>
+                                Administración
+                            </a>
+                        </li>
+                        <?php endif; ?>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <!-- LOGOUT SIN data-action para evitar duplicados -->
+                            <a class="dropdown-item text-danger" href="index.php?action=logout">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Cerrar Sesión
+                            </a>                        </li>
+                    </ul>
                 </div>
-            </header>
-
-            <!-- Área de contenido -->
-            <div class="content">
-                <?php if (isset($content)): ?>
-                    <?= $content ?>
-                <?php else: ?>
-                    <!-- Contenido por defecto -->
-                    <div class="page-header">
-                        <h1 class="page-title"><?= $title ?? 'Dashboard' ?></h1>
-                    </div>
-                    
+            </div>
+        </nav>
+        
+        <!-- Content Wrapper -->
+        <div class="content-wrapper">
+            <?php if (isset($content)): ?>
+                <?= $content ?>
+            <?php else: ?>
+                <!-- Default Content -->
+                <div class="page-header fade-in">
+                    <h1 class="page-title">
+                        <i class="bi bi-speedometer2"></i>
+                        <?= $title ?? 'Dashboard' ?>
+                    </h1>
                     <?php if (isset($message)): ?>
-                        <div class="alert alert-info fade-in">
+                        <div class="alert alert-info alert-dismissible fade show mt-3" role="alert">
+                            <i class="bi bi-info-circle me-2"></i>
                             <?= htmlspecialchars($message) ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     <?php endif; ?>
-                <?php endif; ?>
-            </div>
-        </main>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
-
-    <!-- Scripts -->
+    
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
     <script src="assets/js/main.js"></script>
+    
+    <script>
+        // Enhanced Bootstrap Integration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Sidebar Toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                });
+            }
+            
+            // Close sidebar when clicking overlay
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+            }
+            
+            // Close sidebar on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Initialize popovers
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl);
+            });
+            
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+            
+            // Enhanced table interactions
+            const tables = document.querySelectorAll('.table tbody tr');
+            tables.forEach(function(row) {
+                row.addEventListener('click', function() {
+                    // Remove active class from all rows
+                    tables.forEach(r => r.classList.remove('table-active'));
+                    // Add active class to clicked row
+                    this.classList.add('table-active');
+                });
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+        
+        // Theme Toggle (optional)
+        function toggleTheme() {
+            const htmlElement = document.documentElement;
+            const currentTheme = htmlElement.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            htmlElement.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Load saved theme
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        }
+    </script>
+    
     <?php if (isset($additional_scripts)): ?>
         <?= $additional_scripts ?>
     <?php endif; ?>

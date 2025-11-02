@@ -2,6 +2,7 @@
 $current_page = 'admin';
 $title = 'Configuración del Sistema';
 $breadcrumb = 'Administración / Configuración';
+$csrf_token = $_SESSION['csrf_token'];
 
 ob_start(); 
 ?>
@@ -9,32 +10,25 @@ ob_start();
 <div class="page-header">
     <h1 class="page-title">Configuración del Sistema</h1>
     <div>
-        <button type="button" class="btn btn-success" onclick="saveAllConfig()">
+        <button type="button" class="btn btn-outline" onclick="resetToDefaults()">
             <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <polyline points="7,3 7,8 15,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="23,4 23,10 17,10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20.49 15C19.76 15.96 18.78 16.73 17.65 17.2C16.52 17.67 15.29 17.84 14.06 17.69C12.83 17.54 11.68 17.08 10.73 16.36C9.78 15.64 9.06 14.69 8.64 13.61C8.22 12.53 8.12 11.36 8.35 10.23C8.58 9.1 9.13 8.06 9.94 7.21C10.75 6.36 11.78 5.74 12.91 5.41C14.04 5.08 15.24 5.05 16.38 5.33" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C13.8 3 15.47 3.55 16.85 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            Guardar Configuración
+            Restaurar Valores por Defecto
         </button>
     </div>
 </div>
 
-<?php if (isset($message) && $message): ?>
-<div class="alert alert-success fade-in">
-    <?= htmlspecialchars($message) ?>
-</div>
+<?php if (isset($message) && !empty($message)): ?>
+    <div class="alert alert-success fade-in">
+        <?= htmlspecialchars($message) ?>
+    </div>
 <?php endif; ?>
 
-<form id="configForm" method="POST">
+<form method="POST" action="index.php?action=admin&subaction=configuracion" id="configForm">
     <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
-    
-    <?php 
-    $config_por_categoria = [];
-    foreach ($configuraciones as $config) {
-        $config_por_categoria[$config['categoria']][] = $config;
-    }
-    ?>
     
     <div class="row">
         <!-- Configuración General -->
@@ -50,50 +44,34 @@ ob_start();
                     </h3>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($config_por_categoria['general'])): ?>
-                        <?php foreach ($config_por_categoria['general'] as $config): ?>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <?= htmlspecialchars($config['descripcion']) ?>
-                                <?php if (!$config['modificable']): ?>
-                                    <span class="badge badge-secondary">Solo lectura</span>
-                                <?php endif; ?>
-                            </label>
-                            
-                            <?php if ($config['tipo'] === 'boolean'): ?>
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" 
-                                           id="config_<?= $config['clave'] ?>" 
-                                           name="config[<?= $config['clave'] ?>]" 
-                                           value="true"
-                                           <?= $config['valor'] === 'true' ? 'checked' : '' ?>
-                                           <?= !$config['modificable'] ? 'disabled' : '' ?>>
-                                    <label class="form-check-label" for="config_<?= $config['clave'] ?>">
-                                        Activado
-                                    </label>
-                                </div>
-                                <?php if ($config['modificable']): ?>
-                                <input type="hidden" name="config[<?= $config['clave'] ?>]" value="false">
-                                <?php endif; ?>
-                                
-                            <?php elseif ($config['tipo'] === 'text'): ?>
-                                <textarea class="form-control" 
-                                          name="config[<?= $config['clave'] ?>]" 
-                                          rows="3"
-                                          <?= !$config['modificable'] ? 'readonly' : '' ?>><?= htmlspecialchars($config['valor']) ?></textarea>
-                                          
-                            <?php else: ?>
-                                <input type="<?= $config['tipo'] === 'integer' ? 'number' : 'text' ?>" 
-                                       class="form-control" 
-                                       name="config[<?= $config['clave'] ?>]" 
-                                       value="<?= htmlspecialchars($config['valor']) ?>"
-                                       <?= !$config['modificable'] ? 'readonly' : '' ?>>
-                            <?php endif; ?>
-                            
-                            <small class="text-secondary">Clave: <?= htmlspecialchars($config['clave']) ?></small>
-                        </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                    <div class="form-group">
+                        <label for="app_name" class="form-label">Nombre del Sistema</label>
+                        <input type="text" class="form-control" id="app_name" name="config[app_name]" 
+                               value="<?= APP_NAME ?>" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="app_description" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="app_description" name="config[app_description]" rows="3">Sistema de gestión web desarrollado en PHP8 con MariaDB</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="session_timeout" class="form-label">Timeout de Sesión (minutos)</label>
+                        <input type="number" class="form-control" id="session_timeout" name="config[session_timeout]" 
+                               value="<?= SESSION_TIMEOUT / 60 ?>" min="5" max="480">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max_login_attempts" class="form-label">Máximo Intentos de Login</label>
+                        <input type="number" class="form-control" id="max_login_attempts" name="config[max_login_attempts]" 
+                               value="<?= MAX_LOGIN_ATTEMPTS ?>" min="3" max="10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lockout_time" class="form-label">Tiempo de Bloqueo (minutos)</label>
+                        <input type="number" class="form-control" id="lockout_time" name="config[lockout_time]" 
+                               value="<?= LOCKOUT_TIME / 60 ?>" min="1" max="60">
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,353 +81,261 @@ ob_start();
             <div class="card">
                 <div class="card-header">
                     <h3>
+
                         <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <circle cx="12" cy="16" r="1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Configuración de Seguridad
+                        Seguridad
                     </h3>
                 </div>
                 <div class="card-body">
-                    <?php if (isset($config_por_categoria['seguridad'])): ?>
-                        <?php foreach ($config_por_categoria['seguridad'] as $config): ?>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <?= htmlspecialchars($config['descripcion']) ?>
-                                <?php if (!$config['modificable']): ?>
-                                    <span class="badge badge-secondary">Solo lectura</span>
-                                <?php endif; ?>
+                    <div class="form-group">
+                        <label for="password_min_length" class="form-label">Longitud Mínima de Contraseña</label>
+                        <input type="number" class="form-control" id="password_min_length" name="config[password_min_length]" 
+                               value="<?= PASSWORD_MIN_LENGTH ?>" min="6" max="20">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Modo Mantenimiento</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="maintenance_mode" 
+                                   name="config[maintenance_mode]" value="1">
+                            <label class="form-check-label" for="maintenance_mode">
+                                Activar modo mantenimiento
                             </label>
-                            
-                            <?php if ($config['tipo'] === 'boolean'): ?>
-                                <div class="form-check">
-                                    <input type="checkbox" class="form-check-input" 
-                                           id="config_<?= $config['clave'] ?>" 
-                                           name="config[<?= $config['clave'] ?>]" 
-                                           value="true"
-                                           <?= $config['valor'] === 'true' ? 'checked' : '' ?>
-                                           <?= !$config['modificable'] ? 'disabled' : '' ?>>
-                                    <label class="form-check-label" for="config_<?= $config['clave'] ?>">
-                                        Activado
-                                    </label>
-                                </div>
-                                <?php if ($config['modificable']): ?>
-                                <input type="hidden" name="config[<?= $config['clave'] ?>]" value="false">
-                                <?php endif; ?>
-                                
-                            <?php else: ?>
-                                <input type="<?= $config['tipo'] === 'integer' ? 'number' : 'text' ?>" 
-                                       class="form-control" 
-                                       name="config[<?= $config['clave'] ?>]" 
-                                       value="<?= htmlspecialchars($config['valor']) ?>"
-                                       <?= !$config['modificable'] ? 'readonly' : '' ?>
-                                       <?= $config['tipo'] === 'integer' ? 'min="1"' : '' ?>>
-                            <?php endif; ?>
-                            
-                            <small class="text-secondary">Clave: <?= htmlspecialchars($config['clave']) ?></small>
                         </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                        <small class="text-secondary">Solo los administradores podrán acceder al sistema</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Registro de Actividad</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="audit_logging" 
+                                   name="config[audit_logging]" value="1" checked>
+                            <label class="form-check-label" for="audit_logging">
+                                Registrar actividad de usuarios
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="log_retention_days" class="form-label">Retención de Logs (días)</label>
+                        <input type="number" class="form-control" id="log_retention_days" name="config[log_retention_days]" 
+                               value="30" min="7" max="365">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="row mt-4">
-        <!-- Configuración de Email -->
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Configuración de Email
-                    </h3>
+    <!-- Configuración de Email -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Configuración de Email
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4">
+                    <div class="form-group">
+                        <label for="smtp_host" class="form-label">Servidor SMTP</label>
+                        <input type="text" class="form-control" id="smtp_host" name="config[smtp_host]" 
+                               value="<?= SMTP_HOST ?>">
+                    </div>
                 </div>
-                <div class="card-body">
-                    <?php if (isset($config_por_categoria['email'])): ?>
-                        <?php foreach ($config_por_categoria['email'] as $config): ?>
-                        <div class="form-group">
-                            <label class="form-label">
-                                <?= htmlspecialchars($config['descripcion']) ?>
-                                <?php if (!$config['modificable']): ?>
-                                    <span class="badge badge-secondary">Solo lectura</span>
-                                <?php endif; ?>
-                            </label>
-                            
-                            <?php if ($config['clave'] === 'email.smtp_pass'): ?>
-                                <input type="password" 
-                                       class="form-control" 
-                                       name="config[<?= $config['clave'] ?>]" 
-                                       value="<?= htmlspecialchars($config['valor']) ?>"
-                                       <?= !$config['modificable'] ? 'readonly' : '' ?>
-                                       placeholder="Dejar en blanco para mantener actual">
-                            <?php else: ?>
-                                <input type="<?= $config['tipo'] === 'integer' ? 'number' : 'text' ?>" 
-                                       class="form-control" 
-                                       name="config[<?= $config['clave'] ?>]" 
-                                       value="<?= htmlspecialchars($config['valor']) ?>"
-                                       <?= !$config['modificable'] ? 'readonly' : '' ?>
-                                       <?= $config['tipo'] === 'integer' ? 'min="1" max="65535"' : '' ?>>
-                            <?php endif; ?>
-                            
-                            <small class="text-secondary">Clave: <?= htmlspecialchars($config['clave']) ?></small>
-                        </div>
-                        <?php endforeach; ?>
-                        
-                        <!-- Botón de prueba de email -->
-                        <div class="mt-3">
-                            <button type="button" class="btn btn-info btn-sm" onclick="testEmailConfig()">
-                                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Probar Configuración
-                            </button>
-                        </div>
-                    <?php endif; ?>
+                <div class="col-2">
+                    <div class="form-group">
+                        <label for="smtp_port" class="form-label">Puerto</label>
+                        <input type="number" class="form-control" id="smtp_port" name="config[smtp_port]" 
+                               value="<?= SMTP_PORT ?>" min="25" max="65535">
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="form-group">
+                        <label for="smtp_user" class="form-label">Usuario SMTP</label>
+                        <input type="email" class="form-control" id="smtp_user" name="config[smtp_user]" 
+                               value="<?= SMTP_USER ?>">
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="form-group">
+                        <label for="smtp_from" class="form-label">Email Remitente</label>
+                        <input type="email" class="form-control" id="smtp_from" name="config[smtp_from]" 
+                               value="<?= SMTP_FROM ?>">
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Información del Sistema -->
-        <div class="col-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3>
-                        <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Información del Sistema
-                    </h3>
+            
+            <div class="row">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label for="smtp_pass" class="form-label">Contraseña SMTP</label>
+                        <input type="password" class="form-control" id="smtp_pass" name="config[smtp_pass]" 
+                               placeholder="••••••••" autocomplete="new-password">
+                        <small class="text-secondary">Dejar en blanco para mantener la contraseña actual</small>
+                    </div>
                 </div>
-                <div class="card-body">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Opciones de Seguridad</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="smtp_ssl" 
+                                   name="config[smtp_ssl]" value="1" checked>
+                            <label class="form-check-label" for="smtp_ssl">
+                                Usar SSL/TLS
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <button type="button" class="btn btn-info btn-sm" onclick="testEmailConfig()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polyline points="22,6 12,13 2,6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 6L12 13L2 6V18C2 18.5304 2.21071 19.0391 2.58579 19.4142C2.96086 19.7893 3.46957 20 4 20H20C20.5304 20 21.0391 19.7893 21.4142 19.4142C21.7893 19.0391 22 18.5304 22 18V6Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Probar Configuración de Email
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Información del Sistema -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3>
+                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M9.09 9C9.3251 8.33167 9.78915 7.76811 10.4 7.40913C11.0108 7.05016 11.7289 6.91894 12.4272 7.03871C13.1255 7.15849 13.7588 7.52152 14.2151 8.06353C14.6713 8.60553 14.9211 9.29152 14.92 10C14.92 12 11.92 13 11.92 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 17H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Información del Sistema
+            </h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-3">
                     <div class="form-group">
                         <label class="form-label">Versión PHP</label>
                         <input type="text" class="form-control" value="<?= phpversion() ?>" readonly>
                     </div>
-                    
+                </div>
+                <div class="col-3">
                     <div class="form-group">
                         <label class="form-label">Servidor Web</label>
                         <input type="text" class="form-control" value="<?= $_SERVER['SERVER_SOFTWARE'] ?? 'Desconocido' ?>" readonly>
                     </div>
-                    
+                </div>
+                <div class="col-3">
                     <div class="form-group">
                         <label class="form-label">Uso de Memoria</label>
                         <input type="text" class="form-control" value="<?= number_format(memory_get_usage(true) / 1024 / 1024, 2) ?> MB" readonly>
                     </div>
-                    
+                </div>
+                <div class="col-3">
                     <div class="form-group">
-                        <label class="form-label">Espacio en Disco</label>
-                        <input type="text" class="form-control" value="<?= number_format(disk_free_space('.') / 1024 / 1024 / 1024, 2) ?> GB disponibles" readonly>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Última Actualización</label>
-                        <input type="text" class="form-control" value="<?= date('d/m/Y H:i:s') ?>" readonly>
+                        <label class="form-label">Versión del Sistema</label>
+                        <input type="text" class="form-control" value="<?= APP_VERSION ?>" readonly>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</form>
-
-<!-- Herramientas de Sistema -->
-<div class="card mt-4">
-    <div class="card-header">
-        <h3>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14.7 6.3C15.3 5.7 15.3 4.7 14.7 4.1L13.6 3C13 2.4 12 2.4 11.4 3L10.5 3.9L14.7 8.1L15.6 7.2C16.2 6.6 16.2 5.6 15.6 5L14.7 6.3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M8.5 5.5L4.5 9.5L3 21L14.5 19.5L18.5 15.5L8.5 5.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            Herramientas del Sistema
-        </h3>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-3">
-                <button type="button" class="btn btn-warning btn-block" onclick="clearCache()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Limpiar Cache
-                </button>
-            </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-info btn-block" onclick="checkUpdates()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <polyline points="17,8 12,3 7,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="12" y1="3" x2="12" y2="15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Verificar Actualizaciones
-                </button>
-            </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-success btn-block" onclick="backupSystem()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 9V7C20 6.46957 19.7893 5.96086 19.4142 5.58579C19.0391 5.21071 18.5304 5 18 5H16L14 3H10L8 5H6C5.46957 5 4.96086 5.21071 4.58579 5.58579C4.21071 5.96086 4 6.46957 4 7V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <rect x="4" y="9" width="16" height="10" rx="2" ry="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="12" cy="14" r="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Crear Backup
-                </button>
-            </div>
-            <div class="col-3">
-                <button type="button" class="btn btn-danger btn-block" onclick="enableMaintenanceMode()">
-                    <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Modo Mantenimiento
-                </button>
-            </div>
+    
+    <!-- Botones de acción -->
+    <div class="card mt-4">
+        <div class="card-body text-center">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16L21 8V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="7,3 7,8 15,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Guardar Configuración
+            </button>
+            <a href="index.php?action=admin" class="btn btn-secondary btn-lg ml-2">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Volver al Panel
+            </a>
         </div>
     </div>
-</div>
+</form>
 
 <script>
-// Guardar toda la configuración
-function saveAllConfig() {
-    const form = document.getElementById('configForm');
-    const formData = new FormData(form);
-    
-    // Mostrar confirmación
-    if (!confirm('¿Está seguro de que desea guardar toda la configuración?')) {
-        return;
-    }
-    
-    // Simular guardado
-    SistemaGestion.showNotification('Guardando configuración...', 'info');
-    
-    setTimeout(() => {
-        SistemaGestion.showNotification('Configuración guardada correctamente', 'success');
-    }, 1500);
-}
-
-// Probar configuración de email
+// Test de configuración de email
 function testEmailConfig() {
-    SistemaGestion.showNotification('Enviando email de prueba...', 'info');
-    
-    // Simular prueba de email
-    setTimeout(() => {
-        const success = Math.random() > 0.3; // 70% de éxito
-        if (success) {
+    if (confirm('¿Enviar un email de prueba para verificar la configuración?')) {
+        SistemaGestion.showNotification('Enviando email de prueba...', 'info');
+        
+        // Simular envío de email
+        setTimeout(() => {
             SistemaGestion.showNotification('Email de prueba enviado correctamente', 'success');
-        } else {
-            SistemaGestion.showNotification('Error al enviar email de prueba. Verifique la configuración.', 'error');
-        }
-    }, 2000);
+        }, 2000);
+    }
 }
 
-// Limpiar cache
-function clearCache() {
-    if (confirm('¿Está seguro de que desea limpiar todo el cache del sistema?')) {
-        SistemaGestion.showNotification('Limpiando cache...', 'info');
+// Restaurar valores por defecto
+function resetToDefaults() {
+    if (confirm('¿Está seguro de que desea restaurar todos los valores a los predeterminados? Esta acción no se puede deshacer.')) {
+        SistemaGestion.showNotification('Restaurando valores por defecto...', 'warning');
+        
+        // Resetear campos principales
+        document.getElementById('app_name').value = '<?= APP_NAME ?>';
+        document.getElementById('session_timeout').value = '<?= SESSION_TIMEOUT / 60 ?>';
+        document.getElementById('max_login_attempts').value = '<?= MAX_LOGIN_ATTEMPTS ?>';
+        document.getElementById('lockout_time').value = '<?= LOCKOUT_TIME / 60 ?>';
+        document.getElementById('password_min_length').value = '<?= PASSWORD_MIN_LENGTH ?>';
         
         setTimeout(() => {
-            SistemaGestion.showNotification('Cache limpiado correctamente', 'success');
+            SistemaGestion.showNotification('Valores restaurados a los predeterminados', 'success');
         }, 1000);
     }
 }
 
-// Verificar actualizaciones
-function checkUpdates() {
-    SistemaGestion.showNotification('Verificando actualizaciones...', 'info');
+// Validación del formulario
+document.getElementById('configForm').addEventListener('submit', function(e) {
+    // Validaciones básicas
+    const sessionTimeout = parseInt(document.getElementById('session_timeout').value);
+    const maxAttempts = parseInt(document.getElementById('max_login_attempts').value);
+    const lockoutTime = parseInt(document.getElementById('lockout_time').value);
+    const passwordLength = parseInt(document.getElementById('password_min_length').value);
     
-    setTimeout(() => {
-        const hasUpdates = Math.random() > 0.7; // 30% de probabilidad de actualizaciones
-        if (hasUpdates) {
-            SistemaGestion.showNotification('Hay actualizaciones disponibles', 'warning');
-        } else {
-            SistemaGestion.showNotification('El sistema está actualizado', 'success');
-        }
-    }, 2000);
-}
-
-// Crear backup
-function backupSystem() {
-    if (confirm('¿Está seguro de que desea crear un backup completo del sistema?')) {
-        SistemaGestion.showNotification('Creando backup del sistema...', 'info');
-        
-        setTimeout(() => {
-            SistemaGestion.showNotification('Backup creado correctamente', 'success');
-        }, 3000);
-    }
-}
-
-// Activar modo mantenimiento
-function enableMaintenanceMode() {
-    const isEnabled = document.querySelector('input[name="config[sistema.mantenimiento]"]:checked');
-    const action = isEnabled ? 'desactivar' : 'activar';
-    
-    if (confirm(`¿Está seguro de que desea ${action} el modo mantenimiento?`)) {
-        // Toggle el checkbox
-        const checkbox = document.querySelector('input[name="config[sistema.mantenimiento]"][type="checkbox"]');
-        if (checkbox) {
-            checkbox.checked = !checkbox.checked;
-        }
-        
-        SistemaGestion.showNotification(`Modo mantenimiento ${isEnabled ? 'desactivado' : 'activado'}`, 'warning');
-    }
-}
-
-// Auto-guardar cambios cada 30 segundos
-let autoSaveInterval;
-let hasChanges = false;
-
-// Detectar cambios en el formulario
-document.getElementById('configForm').addEventListener('change', function() {
-    hasChanges = true;
-    
-    // Mostrar indicador de cambios no guardados
-    if (!document.querySelector('.unsaved-changes')) {
-        const indicator = document.createElement('div');
-        indicator.className = 'alert alert-warning unsaved-changes';
-        indicator.innerHTML = '<strong>⚠️ Cambios no guardados</strong> - Los cambios se guardarán automáticamente cada 30 segundos';
-        document.querySelector('.page-header').after(indicator);
+    if (sessionTimeout < 5 || sessionTimeout > 480) {
+        e.preventDefault();
+        alert('El timeout de sesión debe estar entre 5 y 480 minutos');
+        return;
     }
     
-    // Iniciar auto-guardado si no está activo
-    if (!autoSaveInterval) {
-        autoSaveInterval = setInterval(() => {
-            if (hasChanges) {
-                autoSave();
-            }
-        }, 30000); // 30 segundos
-    }
-});
-
-// Auto-guardado
-function autoSave() {
-    if (!hasChanges) return;
-    
-    SistemaGestion.showNotification('Guardado automático...', 'info');
-    
-    setTimeout(() => {
-        hasChanges = false;
-        const indicator = document.querySelector('.unsaved-changes');
-        if (indicator) {
-            indicator.remove();
-        }
-        SistemaGestion.showNotification('Configuración guardada automáticamente', 'success');
-    }, 1000);
-}
-
-// Limpiar interval al salir
-window.addEventListener('beforeunload', function() {
-    if (autoSaveInterval) {
-        clearInterval(autoSaveInterval);
+    if (maxAttempts < 3 || maxAttempts > 10) {
+        e.preventDefault();
+        alert('Los intentos máximos de login deben estar entre 3 y 10');
+        return;
     }
     
-    if (hasChanges) {
-        return 'Tienes cambios no guardados. ¿Estás seguro de que quieres salir?';
+    if (lockoutTime < 1 || lockoutTime > 60) {
+        e.preventDefault();
+        alert('El tiempo de bloqueo debe estar entre 1 y 60 minutos');
+        return;
     }
+    
+    if (passwordLength < 6 || passwordLength > 20) {
+        e.preventDefault();
+        alert('La longitud mínima de contraseña debe estar entre 6 y 20 caracteres');
+        return;
+    }
+    
+    SistemaGestion.showNotification('Guardando configuración...', 'info');
 });
 </script>
 
