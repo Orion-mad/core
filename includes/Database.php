@@ -3,13 +3,6 @@
  * Clase Database - Manejo de conexiones y operaciones de base de datos
  * Sistema de Gestión - PHP8 + MariaDB
  */
-	define('DB_HOST' 	,'localhost');
-	define('DB_PORT'	,'3306');
-	define('DB_NAME' 	,'core');
-	define('DB_USER' 	,'global');
-	define('DB_PASS' 	,'pkH2MCsFk#');
-    define('DB_CHARSET' ,'utf8mb4'); 
-    define('DB_DRIVER' 	,'mysql'); 
 
 class Database {
     private static $instance = null;
