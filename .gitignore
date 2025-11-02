@@ -2,7 +2,7 @@ _notes/
 /bower_components/
 /node_modules/
 /inc/email_config.php
-
+config.php
 # Sistema de Gestión PHP8 + MariaDB
 # .gitignore
 
