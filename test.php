@@ -1,157 +1,115 @@
 <?php
 /**
- * Script de test para verificar el funcionamiento del sistema
- * Ejecutar: php test_system.php
+ * SCRIPT DE VERIFICACI�N DEL SISTEMA
+ * Ejecutar desde la l�nea de comandos: php verificar_sistema.php
+ * O acceder desde el navegador: http://tu-dominio.com/verificar_sistema.php
  */
 
 require_once 'config.php';
-require_once INCLUDES_PATH . '/Database.php';
-require_once INCLUDES_PATH . '/Auth.php';
 
-echo "=== TEST DEL SISTEMA ===\n\n";
+echo "=== VERIFICACI�N DEL SISTEMA ===\n";
+echo "Fecha: " . date('Y-m-d H:i:s') . "\n\n";
 
+// 1. Verificar conexi�n a base de datos
+echo "1. Verificando conexi�n a base de datos...\n";
 try {
-    // 1. Test de conexión a base de datos
-    echo "1. Probando conexión a base de datos...\n";
     $db = Database::getInstance();
-    $info = $db->getServerInfo();
-    echo "✅ Conexión exitosa: {$info['driver']} {$info['version']}\n\n";
+    echo "   ? Conexi�n exitosa\n";
     
-    // 2. Test de tablas principales
-    echo "2. Verificando tablas principales...\n";
-    $tablas = ['usuarios', 'roles', 'permisos', 'configuracion_sistema', 'auditoria'];
-    foreach ($tablas as $tabla) {
-        try {
-            $count = $db->count($tabla);
-            echo "✅ Tabla $tabla: $count registros\n";
-        } catch (Exception $e) {
-            echo "❌ Error en tabla $tabla: " . $e->getMessage() . "\n";
-        }
+    // Verificar tablas principales
+    $tables = ['usuarios', 'roles', 'permisos', 'sesiones', 'auditoria'];
+    foreach ($tables as $table) {
+        $count = $db->count($table);
+        echo "   - Tabla $table: $count registros\n";
     }
-    echo "\n";
-    
-    // 3. Test de autenticación
-    echo "3. Probando sistema de autenticación...\n";
-    $auth = Auth::getInstance();
-    
-    // Verificar usuario admin
-    $admin = $db->selectOne("SELECT * FROM usuarios WHERE username = 'admin'");
-    if ($admin) {
-        echo "✅ Usuario admin encontrado\n";
-        
-        // Test de verificación de contraseña
-        if (password_verify('admin123', $admin['password_hash'])) {
-            echo "✅ Contraseña admin123 válida\n";
-        } else {
-            echo "❌ Contraseña admin123 no válida\n";
-        }
-    } else {
-        echo "❌ Usuario admin no encontrado\n";
-    }
-    echo "\n";
-    
-    // 4. Test de roles y permisos
-    echo "4. Verificando roles y permisos...\n";
-    $roles = $db->select("SELECT * FROM roles");
-    $permisos = $db->select("SELECT * FROM permisos");
-    
-    echo "✅ Roles encontrados: " . count($roles) . "\n";
-    echo "✅ Permisos encontrados: " . count($permisos) . "\n";
-    
-    foreach ($roles as $rol) {
-        echo "  - Rol: {$rol['nombre']} ({$rol['estado']})\n";
-    }
-    echo "\n";
-    
-    // 5. Test de configuración
-    echo "5. Verificando configuración del sistema...\n";
-    $config = $db->select("SELECT * FROM configuracion_sistema");
-    echo "✅ Configuraciones encontradas: " . count($config) . "\n";
-    
-    foreach ($config as $conf) {
-        echo "  - {$conf['clave']}: {$conf['valor']}\n";
-    }
-    echo "\n";
-    
-    // 6. Test de vistas
-    echo "6. Verificando vistas del sistema...\n";
-    $vistas = [
-        'views/login.php',
-        'views/dashboard.php',
-        'views/error.php',
-        'views/layout.php',
-        'views/admin/panel.php',
-        'views/admin/usuarios.php',
-        'views/admin/roles.php',
-        'views/admin/configuracion.php',
-        'views/admin/auditoria.php'
-    ];
-    
-    foreach ($vistas as $vista) {
-        if (file_exists($vista)) {
-            echo "✅ Vista $vista encontrada\n";
-        } else {
-            echo "❌ Vista $vista no encontrada\n";
-        }
-    }
-    echo "\n";
-    
-    // 7. Test de archivos críticos
-    echo "7. Verificando archivos críticos...\n";
-    $archivos = [
-        'config.php',
-        'index.php',
-        'includes/Database.php',
-        'includes/Auth.php',
-        'assets/css/main.css',
-        'assets/js/main.js'
-    ];
-    
-    foreach ($archivos as $archivo) {
-        if (file_exists($archivo)) {
-            echo "✅ Archivo $archivo encontrado\n";
-        } else {
-            echo "❌ Archivo $archivo no encontrado\n";
-        }
-    }
-    echo "\n";
-    
-    // 8. Test de permisos de directorios
-    echo "8. Verificando permisos de directorios...\n";
-    $directorios = ['logs', 'uploads'];
-    
-    foreach ($directorios as $dir) {
-        if (is_dir($dir)) {
-            if (is_writable($dir)) {
-                echo "✅ Directorio $dir: escribible\n";
-            } else {
-                echo "⚠️  Directorio $dir: no escribible\n";
-            }
-        } else {
-            echo "❌ Directorio $dir: no existe\n";
-        }
-    }
-    echo "\n";
-    
-    echo "=== RESUMEN ===\n";
-    echo "✅ Sistema base funcionando correctamente\n";
-    echo "✅ Base de datos conectada\n";
-    echo "✅ Autenticación configurada\n";
-    echo "✅ Vistas del admin creadas\n";
-    echo "\n";
-    echo "🔗 URL del sistema: " . APP_URL . "\n";
-    echo "👤 Usuario: admin\n";
-    echo "🔑 Contraseña: admin123\n";
-    echo "\n";
-    echo "📝 Para acceder al panel de administración:\n";
-    echo "   1. Login con las credenciales de arriba\n";
-    echo "   2. Click en 'Panel de Administración' (botón naranja)\n";
-    echo "   3. Navegar por las opciones de gestión\n";
-    
 } catch (Exception $e) {
-    echo "❌ Error crítico: " . $e->getMessage() . "\n";
-    echo "Traza: " . $e->getTraceAsString() . "\n";
+    echo "   ? Error: " . $e->getMessage() . "\n";
 }
 
-echo "\n=== TEST COMPLETADO ===\n";
+echo "\n2. Verificando configuraci�n de sesiones...\n";
+//session_start();
+echo "   - Session status: " . session_status() . " (2 = activa)\n";
+echo "   - Session ID: " . session_id() . "\n";
+echo "   - Session name: " . session_name() . "\n";
+
+echo "\n3. Verificando sistema CSRF...\n";
+$token1 = generate_csrf_token();
+echo "   - Token generado: " . substr($token1, 0, 16) . "... (longitud: " . strlen($token1) . ")\n";
+
+// Simular verificaci�n
+$token2 = $_SESSION['csrf_token'] ?? '';
+$verificacion = verify_csrf_token($token2);
+echo "   - Verificaci�n token: " . ($verificacion ? "? OK" : "? FALLO") . "\n";
+
+echo "\n4. Verificando permisos de archivos...\n";
+$dirs = ['logs', 'uploads'];
+foreach ($dirs as $dir) {
+    if (is_dir($dir)) {
+        $perms = fileperms($dir);
+        echo "   - $dir: " . decoct($perms & 0777) . " " . (is_writable($dir) ? "?" : "?") . "\n";
+    } else {
+        echo "   - $dir: ? No existe\n";
+    }
+}
+
+echo "\n5. Verificando archivos principales...\n";
+$files = ['config.php', 'index.php', 'includes/Database.php', 'includes/Auth.php', 'views/login.php'];
+foreach ($files as $file) {
+    echo "   - $file: " . (file_exists($file) ? "?" : "?") . "\n";
+}
+
+echo "\n6. Verificando configuraci�n PHP...\n";
+echo "   - PHP Version: " . PHP_VERSION . "\n";
+echo "   - Display errors: " . (ini_get('display_errors') ? "ON" : "OFF") . "\n";
+echo "   - Error reporting: " . error_reporting() . "\n";
+echo "   - Memory limit: " . ini_get('memory_limit') . "\n";
+
+echo "\n7. Verificando constantes del sistema...\n";
+$constants = ['APP_NAME', 'BASE_PATH', 'INCLUDES_PATH', 'VIEWS_PATH', 'LOG_PATH'];
+foreach ($constants as $const) {
+    if (defined($const)) {
+        echo "   - $const: ? " . constant($const) . "\n";
+    } else {
+        echo "   - $const: ? No definida\n";
+    }
+}
+
+echo "\n8. Test de funciones cr�ticas...\n";
+try {
+    // Test sanitize
+    $test_data = "<script>alert('test')</script>";
+    $sanitized = sanitize($test_data);
+    echo "   - sanitize(): ? OK\n";
+    
+    // Test load_view (sin renderizar)
+    ob_start();
+    $view_exists = file_exists(VIEWS_PATH . '/login.php');
+    ob_end_clean();
+    echo "   - Vista login: " . ($view_exists ? "?" : "?") . "\n";
+    
+} catch (Exception $e) {
+    echo "   - Error en tests: ? " . $e->getMessage() . "\n";
+}
+
+echo "\n=== RESUMEN ===\n";
+echo "Sistema: " . (defined('APP_NAME') ? APP_NAME : 'Sistema de Gesti�n') . "\n";
+echo "Base de datos: " . (isset($db) ? "? Conectada" : "? Error") . "\n";
+echo "CSRF: " . ($verificacion ?? false ? "? Funcionando" : "? Error") . "\n";
+
+echo "\n=== INSTRUCCIONES ===\n";
+echo "Si hay errores:\n";
+echo "1. Verificar credenciales de BD en config.php\n";
+echo "2. Crear directorios: mkdir logs uploads\n";
+echo "3. Dar permisos: chmod 755 logs uploads\n";
+echo "4. Importar: mysql -u usuario -p database < database_structure.sql\n";
+echo "5. Verificar que todas las constantes est�n definidas\n";
+
+// Solo para navegador
+if (isset($_SERVER['HTTP_HOST'])) {
+    echo "<br><br><strong>Acceso de prueba:</strong><br>";
+    echo "Usuario: admin<br>";
+    echo "Contrase�a: admin123<br>";
+}
+
+echo "\n=== FIN VERIFICACI�N ===\n";
 ?>

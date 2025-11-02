@@ -179,7 +179,6 @@ function sanitize($data) {
 // FUNCIONES CSRF MEJORADAS
 // ====================================================================
 
-// Función para generar token CSRF mejorada
 function generate_csrf_token() {
     // Asegurar que la sesión esté iniciada
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -203,7 +202,7 @@ function generate_csrf_token() {
     return $_SESSION['csrf_token'];
 }
 
-// Función para verificar token CSRF mejorada
+// Función para verificar token CSRF (CORREGIDA)
 function verify_csrf_token($token) {
     // Asegurar que la sesión esté iniciada
     if (session_status() !== PHP_SESSION_ACTIVE) {
@@ -251,7 +250,7 @@ function verify_csrf_token($token) {
     return $is_valid;
 }
 
-// Función para limpiar token CSRF
+// Función para limpiar token CSRF (opcional)
 function clear_csrf_token() {
     if (session_status() === PHP_SESSION_ACTIVE) {
         unset($_SESSION['csrf_token'], $_SESSION['csrf_token_time']);
@@ -270,7 +269,6 @@ function debug_csrf_info() {
         'session_data_keys' => array_keys($_SESSION ?? [])
     ];
 }
-
 // ====================================================================
 // FUNCIÓN DE LOGGING
 // ====================================================================

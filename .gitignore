@@ -1,7 +1,99 @@
-# https://git-scm.com/docs/gitignore
-# https://help.github.com/articles/ignoring-files
-# Example.gitignore files : https://github.com/github/gitignore
 _notes/
 /bower_components/
 /node_modules/
 /inc/email_config.php
+
+# Sistema de Gestión PHP8 + MariaDB
+# .gitignore
+
+# Archivos de configuración con credenciales sensibles
+config_local.php
+.env
+.env.local
+.env.production
+
+# Logs del sistema
+logs/
+*.log
+
+# Archivos subidos por usuarios
+uploads/
+files/
+tmp/
+
+# Archivos temporales del sistema
+cache/
+temp/
+*.tmp
+
+# Archivos de respaldo
+*.backup
+*.bak
+*.sql.backup
+
+# Archivos del editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archivos del sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Archivos de PHP
+*.php~
+.php_cs.cache
+
+# Directorios de dependencias (si usas Composer)
+vendor/
+composer.lock
+
+# Archivos de configuración específicos del servidor
+.htaccess.local
+nginx.conf.local
+apache.conf.local
+
+# Archivos de debugging y testing
+debug.php
+test_*.php
+verificar_sistema.php
+
+# Archivos de documentación temporales
+*.draft.md
+TODO.md
+NOTAS.md
+
+# Copias de seguridad de la base de datos
+*.sql
+database_backup_*.sql
+
+# Archivos de sesión (si se guardan en archivos)
+session/
+sessions/
+
+# Variables de entorno del sistema
+.env.*
+config.local.php
+
+# Directorios específicos del proyecto
+storage/
+bootstrap/cache/
+
+# Archivos de certificados SSL
+*.pem
+*.key
+*.crt
+*.p12
+
+# Archivos de configuración del IDE
+.php_cs
+.php_cs.dist
+phpunit.xml
+.phpunit.result.cache

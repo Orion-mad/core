@@ -128,6 +128,11 @@ function handleLogin() {
 }
  */
 
+/**
+ * FUNCIÓN HANDLELOGIN CORREGIDA - Para reemplazar en index.php
+ * Mejor manejo de errores CSRF y debugging
+ */
+
 function handleLogin() {
     global $auth;
     
@@ -144,67 +149,53 @@ function handleLogin() {
     $timeout_message = $_SESSION['timeout_message'] ?? '';
     unset($_SESSION['timeout_message']);
     
-    // Generar token CSRF antes de cualquier verificación
-    $csrf_token = generate_csrf_token();
-    
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = sanitize($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
-        $received_csrf_token = $_POST['csrf_token'] ?? '';
+        $csrf_token = $_POST['csrf_token'] ?? '';
         
-        // Debug info para troubleshooting
+        // Log del intento de login con información de debugging
         write_log('DEBUG', 'Login attempt', [
             'username' => $username,
-            'csrf_received' => !empty($received_csrf_token),
+            'csrf_received' => !empty($csrf_token),
             'csrf_info' => debug_csrf_info()
         ]);
         
-        // Verificar CSRF token con mejor manejo de errores
-        if (!verify_csrf_token($received_csrf_token)) {
-            $error_message = 'Token de seguridad inválido. Por favor, recargue la página e intente nuevamente.';
-            
-            // Regenerar token para el siguiente intento
-            clear_csrf_token();
-            $csrf_token = generate_csrf_token();
-            
+        // Verificar CSRF token
+        if (!verify_csrf_token($csrf_token)) {
+            // Log detallado del error CSRF
             write_log('WARNING', 'Login failed: Invalid CSRF token', [
                 'username' => $username,
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
-                'user_agent' => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 100),
+                'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
                 'csrf_debug' => debug_csrf_info()
             ]);
             
+            $error_message = 'Token de seguridad inválido';
         } elseif (empty($username) || empty($password)) {
             $error_message = 'Por favor complete todos los campos';
-            
         } else {
-            // Proceder con autenticación
             $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
             $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
             
             $result = $auth->login($username, $password, $ip_address, $user_agent);
             
             if ($result['success']) {
-                // Limpiar token CSRF después del login exitoso
-                clear_csrf_token();
-                
-                write_log('INFO', 'Login successful', [
-                    'username' => $username,
-                    'ip' => $ip_address
-                ]);
-                
                 redirect('index.php?action=dashboard');
             } else {
                 $error_message = $result['message'];
-                
-                write_log('WARNING', 'Login failed: Invalid credentials', [
-                    'username' => $username,
-                    'ip' => $ip_address,
-                    'error' => $result['message']
-                ]);
             }
         }
     }
+    
+    // Generar token CSRF para el formulario
+    $csrf_token = generate_csrf_token();
+    
+    // Log del token generado para debugging
+    write_log('DEBUG', 'CSRF token generated for login form', [
+        'token_length' => strlen($csrf_token),
+        'session_id' => session_id()
+    ]);
     
     load_view('login', [
         'error_message' => $error_message,
@@ -212,6 +203,9 @@ function handleLogin() {
         'csrf_token' => $csrf_token
     ]);
 }
+
+
+
 /**
  * Manejar logout
  */
