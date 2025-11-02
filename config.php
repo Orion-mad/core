@@ -55,7 +55,7 @@ define('LOG_LEVEL', 'INFO'); // DEBUG, INFO, WARNING, ERROR
 // Configuración de email (para futuras funcionalidades)
 define('SMTP_HOST', 'srve42.controlvps.com');
 define('SMTP_PORT', 465);
-define('SMTP_USER', 'noreply@orionar.cloud"');
+define('SMTP_USER', 'noreply@orionar.cloud');
 define('SMTP_PASS', 'Um3mBcMh@gH');
 define('SMTP_FROM', 'noreply@orionar.cloud');
 
@@ -89,9 +89,6 @@ function render_with_layout($content, $data = []) {
 
 // Función para cargar vistas
 function load_view($view, $data = []) {
-    // Extraer variables para la vista
-    extract($data);
-    
     // Determinar la ruta del archivo
     $view_file = VIEWS_PATH . '/' . $view . '.php';
     
@@ -105,8 +102,30 @@ function load_view($view, $data = []) {
     }
     
     if (file_exists($view_file)) {
-        // Incluir el archivo de vista
-        include $view_file;
+        // Extraer variables para la vista
+        extract($data);
+        
+        // Si es una vista especial (login, error sin layout), incluir directamente
+        if (in_array($view, ['login', 'error_simple'])) {
+            include $view_file;
+        } else {
+            // Para otras vistas, usar el sistema de buffering
+            ob_start();
+            include $view_file;
+            $content = ob_get_clean();
+            
+            // Si la vista ya renderizó el layout, no hacer nada más
+            if (!$content) {
+                return;
+            }
+            
+            // Si hay contenido, significa que necesita layout
+            render_with_layout($content, array_merge($data, [
+                'current_page' => $data['current_page'] ?? basename($view),
+                'title' => $data['title'] ?? 'Sistema',
+                'breadcrumb' => $data['breadcrumb'] ?? 'Dashboard'
+            ]));
+        }
     } else {
         throw new Exception("Vista no encontrada: $view");
     }

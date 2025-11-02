@@ -2,8 +2,6 @@
 $current_page = 'error';
 $title = 'Error';
 $breadcrumb = 'Error';
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -48,12 +46,3 @@ ob_start();
         </div>
     </div>
 </div>
-
-<?php 
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
-?>

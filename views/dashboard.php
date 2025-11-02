@@ -2,8 +2,6 @@
 $current_page = 'dashboard';
 $title = 'Dashboard';
 $breadcrumb = 'Dashboard';
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -215,8 +213,3 @@ ob_start();
     </div>
 </div>
 <?php endif; ?>
-
-<?php 
-$content = ob_get_clean();
-include 'layout.php'; 
-?>

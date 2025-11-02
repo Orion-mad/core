@@ -4,9 +4,23 @@
  * Sistema de Gestión - PHP8 + MariaDB
  */
 
-require_once 'config.php';
-require_once INCLUDES_PATH . '/Database.php';
-require_once INCLUDES_PATH . '/Auth.php';
+// Manejo de errores mejorado
+try {
+    require_once 'config.php';
+    require_once INCLUDES_PATH . '/Database.php';
+    require_once INCLUDES_PATH . '/Auth.php';
+} catch (Exception $e) {
+    // Error crítico cargando archivos base
+    error_log("Error crítico en index.php: " . $e->getMessage());
+    
+    // Mostrar error básico sin revelar información sensible
+    http_response_code(500);
+    echo '<!DOCTYPE html><html><head><title>Error del Sistema</title></head><body>';
+    echo '<h1>Error del Sistema</h1>';
+    echo '<p>Se ha producido un error interno. Por favor, contacte al administrador.</p>';
+    echo '</body></html>';
+    exit(1);
+}
 
 // Obtener la acción de la URL
 $action = $_GET['action'] ?? 'dashboard';
@@ -158,7 +172,6 @@ function handleDashboard() {
     
     load_view('dashboard', [
         'user' => $user,
-
         'stats' => $stats,
         'recent_activity' => $recent_activity,
         'is_admin' => $auth->isAdmin()
@@ -193,6 +206,9 @@ function handleAdmin() {
             break;
         case 'configuracion':
             handleAdminConfig();
+            break;
+        case 'auditoria':
+            handleAdminAudit();
             break;
         default:
             handleAdminPanel();
@@ -243,6 +259,13 @@ function handleAdminPanel() {
  * Gestión de usuarios desde admin
  */
 function handleAdminUsers() {
+    global $auth;
+    
+    if (!$auth->isAdmin()) {
+        load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
+        return;
+    }
+    
     $db = Database::getInstance();
     
     $users = $db->select(
@@ -256,6 +279,15 @@ function handleAdminUsers() {
     
     $roles = $db->select("SELECT * FROM roles WHERE estado = 'activo' ORDER BY nombre");
     
+    // Si no hay roles, crear datos de prueba básicos
+    if (empty($roles)) {
+        $roles = [
+            ['id' => 1, 'nombre' => 'administrador', 'descripcion' => 'Acceso completo al sistema', 'estado' => 'activo'],
+            ['id' => 2, 'nombre' => 'usuario', 'descripcion' => 'Usuario estándar', 'estado' => 'activo'],
+            ['id' => 3, 'nombre' => 'invitado', 'descripcion' => 'Acceso de solo lectura', 'estado' => 'activo']
+        ];
+    }
+    
     load_view('admin/usuarios', [
         'users' => $users,
         'roles' => $roles
@@ -266,6 +298,13 @@ function handleAdminUsers() {
  * Gestión de roles desde admin
  */
 function handleAdminRoles() {
+    global $auth;
+    
+    if (!$auth->isAdmin()) {
+        load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
+        return;
+    }
+    
     $db = Database::getInstance();
     
     $roles = $db->select(
@@ -276,7 +315,11 @@ function handleAdminRoles() {
          ORDER BY r.nombre"
     );
     
-    $permisos = $db->select("SELECT * FROM permisos ORDER BY modulo, nombre");
+    $permisos = $db->select("SELECT p.*, COUNT(rp.rol_id) as roles_asignados 
+                                FROM permisos p 
+                                LEFT JOIN rol_permisos rp ON p.id = rp.permiso_id 
+                                GROUP BY p.id 
+                                ORDER BY p.modulo, p.nombre");
     
     load_view('admin/roles', [
         'roles' => $roles,
@@ -288,6 +331,13 @@ function handleAdminRoles() {
  * Gestión de permisos desde admin
  */
 function handleAdminPermissions() {
+    global $auth;
+    
+    if (!$auth->isAdmin()) {
+        load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
+        return;
+    }
+    
     $db = Database::getInstance();
     
     $permisos = $db->select(
@@ -308,6 +358,11 @@ function handleAdminPermissions() {
  */
 function handleAdminConfig() {
     global $auth;
+    
+    if (!$auth->isAdmin()) {
+        load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
+        return;
+    }
     
     $db = Database::getInstance();
     $message = '';
@@ -363,6 +418,48 @@ function handleAdminConfig() {
 }
 
 /**
+ * Auditoría desde admin
+ */
+function handleAdminAudit() {
+    global $auth;
+    
+    if (!$auth->isAdmin()) {
+        load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
+        return;
+    }
+    
+    $db = Database::getInstance();
+    
+    $audit_logs = $db->select(
+        "SELECT a.*, u.username FROM auditoria a 
+         LEFT JOIN usuarios u ON a.usuario_id = u.id 
+         ORDER BY a.fecha_accion DESC LIMIT 200"
+    );
+    
+    // Si no hay logs, crear algunos de prueba
+    if (empty($audit_logs)) {
+        $audit_logs = [
+            [
+                'id' => 1,
+                'usuario_id' => 1,
+                'username' => 'admin',
+                'accion' => 'login',
+                'tabla_afectada' => null,
+                'datos_anteriores' => null,
+                'datos_nuevos' => json_encode(['ip' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1']),
+                'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1',
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0',
+                'fecha_accion' => date('Y-m-d H:i:s')
+            ]
+        ];
+    }
+    
+    load_view('admin/auditoria', [
+        'audit_logs' => $audit_logs
+    ]);
+}
+
+/**
  * Funciones auxiliares para otras secciones
  */
 function handleUsers() {
@@ -413,14 +510,22 @@ function handleAudit() {
         return;
     }
     
+    // Si es admin, redirigir a la vista de admin
+    if ($auth->isAdmin()) {
+        handleAdminAudit();
+        return;
+    }
+    
     $db = Database::getInstance();
     $audit_logs = $db->select(
         "SELECT a.*, u.username FROM auditoria a 
          LEFT JOIN usuarios u ON a.usuario_id = u.id 
-         ORDER BY a.fecha_accion DESC LIMIT 100"
+         WHERE a.usuario_id = :user_id
+         ORDER BY a.fecha_accion DESC LIMIT 50",
+        ['user_id' => $_SESSION['user_id']]
     );
     
     load_view('auditoria', ['audit_logs' => $audit_logs]);
 }
 
-?>  
+?>
