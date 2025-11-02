@@ -1,6 +1,0 @@
-[2025-11-02 20:38:01] [INFO] Conexión a base de datos establecida
-[2025-11-02 20:38:01] [DEBUG] Login attempt {"username":"","csrf_received":false,"csrf_info":{"session_status":2,"session_id":"dpvu888jb8os8a0kpi8f447ih6","csrf_token_exists":true,"csrf_token_length":64,"csrf_token_time":1762126578,"csrf_token_age":103,"session_data_keys":["session_created","client_ip","last_activity","csrf_token","csrf_token_time"]}}
-[2025-11-02 20:38:01] [DEBUG] Verificando token CSRF {"token_received":false,"token_length_received":0,"session_token_exists":true,"session_token_length":64,"session_id":"dpvu888jb8os8a0kpi8f447ih6","tokens_match":false}
-[2025-11-02 20:38:01] [WARNING] Token CSRF faltante {"session_token_exists":true,"received_token_empty":true}
-[2025-11-02 20:38:01] [DEBUG] Nuevo token CSRF generado {"token_length":64,"session_id":"dpvu888jb8os8a0kpi8f447ih6"}
-[2025-11-02 20:38:01] [WARNING] Login failed: Invalid CSRF token {"username":"","ip":"190.49.67.213","user_agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/141.0.0.0 Sa","csrf_debug":{"session_status":2,"session_id":"dpvu888jb8os8a0kpi8f447ih6","csrf_token_exists":true,"csrf_token_length":64,"csrf_token_time":1762126681,"csrf_token_age":0,"session_data_keys":["session_created","client_ip","last_activity","csrf_token","csrf_token_time"]}}
