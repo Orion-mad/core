@@ -290,12 +290,16 @@
                         </label>
                     </div>
                     
-                    <div class="form-floating">
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Contraseña" required autocomplete="current-password">
+                    <div class="form-floating position-relative">
+                        <input type="password" class="form-control" id="password" name="password"
+                               placeholder="Contraseña" required autocomplete="current-password" style="padding-right: 3rem;">
                         <label for="password">
                             <i class="bi bi-lock me-2"></i>Contraseña
                         </label>
+                        <button type="button" class="btn btn-link position-absolute top-50 end-0 translate-middle-y pe-3"
+                                id="togglePassword" style="z-index: 10; text-decoration: none; color: #6c757d;">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
                     </div>
                     
                     <div class="d-grid">
@@ -305,6 +309,13 @@
                         </button>
                     </div>
                 </form>
+
+                <div class="text-center mt-3">
+                    <a href="index.php?action=forgot_password" class="text-decoration-none" style="color: #667eea; font-weight: 500;">
+                        <i class="bi bi-question-circle me-1"></i>
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
                 
                 <div class="system-info">
                     <div class="version-info">
@@ -329,73 +340,146 @@
     <!-- Bootstrap 5.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     
-    <script>
+       <script>
+        // JavaScript simplificado y corregido para el login
         document.addEventListener('DOMContentLoaded', function() {
             const loginForm = document.getElementById('loginForm');
-            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginText = document.getElementById('loginText');
+            const loginLoader = document.getElementById('loginLoader');
             const usernameInput = document.getElementById('username');
             const passwordInput = document.getElementById('password');
-            
-            // Auto-focus on username field
-            usernameInput.focus();
-            
-            // Form submission with loading state
-            loginForm.addEventListener('submit', function(e) {
-                const username = usernameInput.value.trim();
-                const password = passwordInput.value;
-                
-                if (!username || !password) {
+            const togglePassword = document.getElementById('togglePassword');
+            const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+            // Variables de control
+            let isSubmitting = false;
+
+            // Toggle mostrar/ocultar contraseña
+            if (togglePassword && passwordInput && togglePasswordIcon) {
+                togglePassword.addEventListener('click', function(e) {
                     e.preventDefault();
-                    showToast('Por favor complete todos los campos', 'error');
-                    return;
-                }
-                
-                // Show loading overlay
-                loadingOverlay.style.display = 'flex';
-                
-                // Disable form inputs
-                const inputs = loginForm.querySelectorAll('input, button');
-                inputs.forEach(input => input.disabled = true);
-            });
-            
-            // Enter key handling
-            passwordInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    loginForm.dispatchEvent(new Event('submit'));
-                }
-            });
-            
-            // Simple client-side validation
-            const inputs = [usernameInput, passwordInput];
-            inputs.forEach(input => {
-                input.addEventListener('blur', validateInput);
-                input.addEventListener('input', clearValidation);
-            });
-            
-            function validateInput(e) {
-                const input = e.target;
-                const value = input.value.trim();
-                
-                if (!value) {
-                    input.classList.add('is-invalid');
-                    return false;
-                }
-                
-                if (input.type === 'password' && value.length < 3) {
-                    input.classList.add('is-invalid');
-                    return false;
-                }
-                
-                input.classList.remove('is-invalid');
-                input.classList.add('is-valid');
-                return true;
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+
+                    // Cambiar icono
+                    if (type === 'password') {
+                        togglePasswordIcon.classList.remove('bi-eye-slash');
+                        togglePasswordIcon.classList.add('bi-eye');
+                    } else {
+                        togglePasswordIcon.classList.remove('bi-eye');
+                        togglePasswordIcon.classList.add('bi-eye-slash');
+                    }
+                });
             }
             
-            function clearValidation(e) {
-                const input = e.target;
-                input.classList.remove('is-invalid', 'is-valid');
+            // Enfocar automáticamente el campo de usuario
+            if (usernameInput && !usernameInput.value) {
+                usernameInput.focus();
             }
             
+            // Manejar envío del formulario
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    // Prevenir múltiples envíos
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Validar campos básicos
+                    const username = usernameInput.value.trim();
+                    const password = passwordInput.value;
+                    
+                    if (!username || !password) {
+                        e.preventDefault();
+                        alert('Por favor complete todos los campos');
+                        return false;
+                    }
+                    
+                    // Marcar como enviándose
+                    isSubmitting = true;
+                    
+                    // Mostrar estado de carga
+                    if (loginText && loginLoader && loginBtn) {
+                        loginText.style.display = 'none';
+                        loginLoader.style.display = 'inline-block';
+                        loginBtn.disabled = true;
+                    }
+                    
+                    // Debug: Verificar que los datos se envían
+                    console.log('Enviando formulario de login...');
+                    console.log('Username:', username);
+                    console.log('Password length:', password.length);
+                    console.log('CSRF Token:', document.querySelector('input[name="csrf_token"]').value);
+                    
+                    // Permitir el envío del formulario
+                    return true;
+                });
+            }
+            
+            // Manejar tecla Enter en los campos
+            [usernameInput, passwordInput].forEach(input => {
+                if (input) {
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (input === usernameInput && passwordInput) {
+                                passwordInput.focus();
+                            } else {
+                                loginForm.submit();
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Auto-ocultar mensajes de alerta después de 5 segundos
+            const alerts = document.querySelectorAll('.alert-warning, .alert-error');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        alert.style.display = 'none';
+                    }, 500);
+                }, 5000);
+            });
+            
+            // Reset del formulario si hay error (para permitir reintento)
+            if (document.querySelector('.alert-error')) {
+                isSubmitting = false;
+                if (loginText && loginLoader && loginBtn) {
+                    loginText.style.display = 'inline';
+                    loginLoader.style.display = 'none';
+                    loginBtn.disabled = false;
+                }
+            }
+        });
+        
+        // Función para debug manual
+        function debugLogin() {
+            const form = document.getElementById('loginForm');
+            const formData = new FormData(form);
+            
+            console.log('=== DEBUG LOGIN FORM ===');
+            console.log('Form method:', form.method);
+            console.log('Form action:', form.action);
+            console.log('Form data:');
+            for (let [key, value] of formData.entries()) {
+                if (key === 'password') {
+                    console.log(key + ':', '[HIDDEN - Length: ' + value.length + ']');
+                } else {
+                    console.log(key + ':', value);
+                }
+            }
+            console.log('========================');
+        }
+        
+        // Hacer disponible la función de debug
+        window.debugLogin = debugLogin;
+           
+           
             // Toast notification function
             function showToast(message, type = 'info') {
                 const toastContainer = getOrCreateToastContainer();
@@ -484,6 +568,10 @@
                 animateParticles();
             }
         });
+           
+           
+           
+
     </script>
 </body>
 </html>

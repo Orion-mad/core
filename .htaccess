@@ -1,5 +1,6 @@
 # Sistema de Gestión - Configuración Apache
 # Configuración de seguridad y rendimiento
+php_value date.timezone "America/Argentina/Buenos_Aires"
 
 # Página de inicio por defecto
 DirectoryIndex index.php index.html

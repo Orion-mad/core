@@ -1,9 +1,7 @@
-<?php 
+<?php
 $current_page = 'admin';
 $title = 'Auditoría y Logs del Sistema';
 $breadcrumb = 'Administración / Auditoría';
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -532,11 +530,4 @@ function truncate_user_agent($user_agent, $length = 30) {
     
     return substr($user_agent, 0, $length) . '...';
 }
-
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
 ?>

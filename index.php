@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set('America/Argentina/Buenos_Aires'); 
+
 /**
  * Archivo principal del sistema CORREGIDO
  * Sistema de Gestión - PHP8 + MariaDB
@@ -32,7 +34,7 @@ if (rand(1, 100) === 1) {
 }
 
 // Rutas que no requieren autenticación
-$public_routes = ['login', 'logout'];
+$public_routes = ['login', 'logout', 'forgot_password', 'reset_password'];
 
 // Verificar autenticación
 if (!in_array($action, $public_routes) && !$auth->isAuthenticated()) {
@@ -48,7 +50,15 @@ switch ($action) {
     case 'logout':
         handleLogout();
         break;
-    
+
+    case 'forgot_password':
+        handleForgotPassword();
+        break;
+
+    case 'reset_password':
+        handleResetPassword();
+        break;
+
     case 'dashboard':
         handleDashboard();
         break;
@@ -166,6 +176,7 @@ function handleLogin() {
             // Log detallado del error CSRF
             write_log('WARNING', 'Login failed: Invalid CSRF token', [
                 'username' => $username,
+                'csrf_token' => $csrf_token ?? 'unknown',
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
                 'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown',
                 'csrf_debug' => debug_csrf_info()
@@ -622,27 +633,27 @@ function handleProfile() {
  */
 function handleAudit() {
     global $auth;
-    
+
     if (!$auth->hasPermission('auditoria.leer')) {
         load_view('error', ['message' => 'No tiene permisos para ver la auditoría']);
         return;
     }
-    
+
     // Si es admin, redirigir a la vista de admin
     if ($auth->isAdmin()) {
         handleAdminAudit();
         return;
     }
-    
+
     $db = Database::getInstance();
     $audit_logs = $db->select(
-        "SELECT a.*, u.username FROM auditoria a 
-         LEFT JOIN usuarios u ON a.usuario_id = u.id 
+        "SELECT a.*, u.username FROM auditoria a
+         LEFT JOIN usuarios u ON a.usuario_id = u.id
          WHERE a.usuario_id = :user_id
          ORDER BY a.fecha_accion DESC LIMIT 50",
         ['user_id' => $_SESSION['user_id']]
     );
-    
+
     load_view('auditoria', [
         'audit_logs' => $audit_logs,
         'current_page' => 'auditoria',
@@ -650,4 +661,191 @@ function handleAudit() {
     ]);
 }
 
+/**
+ * Manejar solicitud de recuperación de contraseña
+ */
+function handleForgotPassword() {
+    // Asegurar que la sesión esté iniciada
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    $error_message = '';
+    $success_message = '';
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $email = sanitize($_POST['email'] ?? '');
+        $csrf_token = $_POST['csrf_token'] ?? '';
+
+        // Verificar CSRF token
+        if (!verify_csrf_token($csrf_token)) {
+            $error_message = 'Token de seguridad inválido';
+        } elseif (empty($email)) {
+            $error_message = 'Por favor ingrese su correo electrónico';
+        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $error_message = 'Correo electrónico inválido';
+        } else {
+            $db = Database::getInstance();
+
+            // Buscar usuario por email
+            $user = $db->select(
+                "SELECT id, username, email, estado FROM usuarios WHERE email = :email",
+                ['email' => $email]
+            );
+
+            if (!empty($user)) {
+                $user = $user[0];
+
+                // Verificar que el usuario esté activo
+                if ($user['estado'] !== 'activo') {
+                    $error_message = 'Esta cuenta está inactiva. Contacte al administrador.';
+                } else {
+                    // Generar token de recuperación
+                    $token = bin2hex(random_bytes(32));
+                    $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
+                    // Eliminar tokens anteriores del usuario
+                    $db->delete('password_resets', 'usuario_id = :user_id', ['user_id' => $user['id']]);
+
+                    // Insertar nuevo token
+                    $db->insert('password_resets', [
+                        'usuario_id' => $user['id'],
+                        'token' => hash('sha256', $token),
+                        'expira_en' => $expiry,
+                        'creado_en' => date('Y-m-d H:i:s')
+                    ]);
+
+                    // Enviar correo
+                    require_once INCLUDES_PATH . '/MailService.php';
+                    $mailService = MailService::getInstance();
+                    $result = $mailService->sendPasswordReset($email, $token, $user['username']);
+
+                    if ($result['success']) {
+                        $success_message = 'Se han enviado las instrucciones de recuperación a su correo electrónico.';
+
+                        write_log('INFO', 'Password reset requested', [
+                            'user_id' => $user['id'],
+                            'email' => $email
+                        ]);
+                    } else {
+                        $error_message = 'Error al enviar el correo. Por favor, intente nuevamente o contacte al administrador.';
+
+                        write_log('ERROR', 'Password reset email failed', [
+                            'user_id' => $user['id'],
+                            'email' => $email,
+                            'error' => $result['message']
+                        ]);
+                    }
+                }
+            } else {
+                // Por seguridad, mostrar el mismo mensaje aunque el email no exista
+                $success_message = 'Si el correo existe en nuestro sistema, recibirá las instrucciones de recuperación.';
+            }
+        }
+    }
+
+    load_view('forgot_password', [
+        'error_message' => $error_message,
+        'success_message' => $success_message,
+        'csrf_token' => generate_csrf_token()
+    ]);
+}
+
+/**
+ * Manejar restablecimiento de contraseña
+ */
+function handleResetPassword() {
+    // Asegurar que la sesión esté iniciada
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+        session_start();
+    }
+
+    $token = $_GET['token'] ?? $_POST['token'] ?? '';
+    $error_message = '';
+    $success_message = '';
+    $token_valid = false;
+
+    if (empty($token)) {
+        $error_message = 'Token de recuperación no proporcionado';
+    } else {
+        $db = Database::getInstance();
+        $token_hash = hash('sha256', $token);
+
+        // Verificar token
+        $reset = $db->select(
+            "SELECT pr.*, u.id as user_id, u.username, u.email
+             FROM password_resets pr
+             JOIN usuarios u ON pr.usuario_id = u.id
+             WHERE pr.token = :token
+             AND pr.expira_en > NOW()
+             AND pr.usado = 0",
+            ['token' => $token_hash]
+        );
+
+        if (!empty($reset)) {
+            $token_valid = true;
+            $reset = $reset[0];
+
+            // Procesar formulario
+            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                $password = $_POST['password'] ?? '';
+                $confirm_password = $_POST['confirm_password'] ?? '';
+                $csrf_token = $_POST['csrf_token'] ?? '';
+
+                // Verificar CSRF token
+                if (!verify_csrf_token($csrf_token)) {
+                    $error_message = 'Token de seguridad inválido';
+                } elseif (empty($password) || empty($confirm_password)) {
+                    $error_message = 'Por favor complete todos los campos';
+                } elseif ($password !== $confirm_password) {
+                    $error_message = 'Las contraseñas no coinciden';
+                } elseif (strlen($password) < 8) {
+                    $error_message = 'La contraseña debe tener al menos 8 caracteres';
+                } elseif (!preg_match('/[A-Z]/', $password)) {
+                    $error_message = 'La contraseña debe contener al menos una letra mayúscula';
+                } elseif (!preg_match('/[a-z]/', $password)) {
+                    $error_message = 'La contraseña debe contener al menos una letra minúscula';
+                } elseif (!preg_match('/[0-9]/', $password)) {
+                    $error_message = 'La contraseña debe contener al menos un número';
+                } else {
+                    // Actualizar contraseña
+                    $password_hash = password_hash($password, PASSWORD_ARGON2ID);
+
+                    $db->update('usuarios',
+                        ['password_hash' => $password_hash],
+                        'id = :user_id',
+                        ['user_id' => $reset['user_id']]
+                    );
+
+                    // Marcar token como usado
+                    $db->update('password_resets',
+                        ['usado' => 1],
+                        'token = :token',
+                        ['token' => $token_hash]
+                    );
+
+                    write_log('INFO', 'Password reset successful', [
+                        'user_id' => $reset['user_id'],
+                        'username' => $reset['username']
+                    ]);
+
+                    $success_message = 'Contraseña restablecida exitosamente. Puede iniciar sesión con su nueva contraseña.';
+
+                    // Redirigir al login después de 3 segundos
+                    header("refresh:3;url=index.php?action=login");
+                }
+            }
+        } else {
+            $error_message = 'El enlace de recuperación es inválido o ha expirado ';
+        }
+    }
+
+    load_view('reset_password', [
+        'error_message' => $error_message,
+        'success_message' => $success_message,
+        'token_valid' => $token_valid,
+        'token' => $token,
+        'csrf_token' => generate_csrf_token()
+    ]);
+}
 ?>
