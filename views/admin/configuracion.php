@@ -1,10 +1,8 @@
-<?php 
+<?php
 $current_page = 'admin';
 $title = 'Configuración del Sistema';
 $breadcrumb = 'Administración / Configuración';
 $csrf_token = $_SESSION['csrf_token'];
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -58,7 +56,7 @@ ob_start();
                     <div class="form-group">
                         <label for="session_timeout" class="form-label">Timeout de Sesión (minutos)</label>
                         <input type="number" class="form-control" id="session_timeout" name="config[session_timeout]" 
-                               value="<?= SESSION_TIMEOUT / 60 ?>" min="5" max="480">
+                               value="<?= SESSION_LIFETIME / 60 ?>" min="5" max="480">
                     </div>
                     
                     <div class="form-group">
@@ -70,7 +68,7 @@ ob_start();
                     <div class="form-group">
                         <label for="lockout_time" class="form-label">Tiempo de Bloqueo (minutos)</label>
                         <input type="number" class="form-control" id="lockout_time" name="config[lockout_time]" 
-                               value="<?= LOCKOUT_TIME / 60 ?>" min="1" max="60">
+                               value="<?= LOGIN_LOCKOUT_TIME / 60 ?>" min="1" max="60">
                     </div>
                 </div>
             </div>
@@ -142,56 +140,74 @@ ob_start();
             </h3>
         </div>
         <div class="card-body">
+            <?php
+            // Obtener configuración de email de la base de datos
+            $smtp_config = [];
+            if (!empty($config_email)) {
+                foreach ($config_email as $config) {
+                    $smtp_config[$config['clave']] = $config['valor'];
+                }
+            }
+            ?>
             <div class="row">
                 <div class="col-4">
                     <div class="form-group">
                         <label for="smtp_host" class="form-label">Servidor SMTP</label>
-                        <input type="text" class="form-control" id="smtp_host" name="config[smtp_host]" 
-                               value="<?= SMTP_HOST ?>">
+                        <input type="text" class="form-control" id="smtp_host" name="config[smtp_host]"
+                               value="<?= htmlspecialchars($smtp_config['smtp_host'] ?? 'smtp.gmail.com') ?>"
+                               placeholder="smtp.gmail.com">
                     </div>
                 </div>
                 <div class="col-2">
                     <div class="form-group">
                         <label for="smtp_port" class="form-label">Puerto</label>
-                        <input type="number" class="form-control" id="smtp_port" name="config[smtp_port]" 
-                               value="<?= SMTP_PORT ?>" min="25" max="65535">
+                        <input type="number" class="form-control" id="smtp_port" name="config[smtp_port]"
+                               value="<?= htmlspecialchars($smtp_config['smtp_port'] ?? '587') ?>"
+                               min="25" max="65535" placeholder="587">
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="form-group">
-                        <label for="smtp_user" class="form-label">Usuario SMTP</label>
-                        <input type="email" class="form-control" id="smtp_user" name="config[smtp_user]" 
-                               value="<?= SMTP_USER ?>">
+                        <label for="smtp_username" class="form-label">Usuario SMTP</label>
+                        <input type="email" class="form-control" id="smtp_username" name="config[smtp_username]"
+                               value="<?= htmlspecialchars($smtp_config['smtp_username'] ?? '') ?>"
+                               placeholder="tu-email@gmail.com">
                     </div>
                 </div>
                 <div class="col-3">
                     <div class="form-group">
-                        <label for="smtp_from" class="form-label">Email Remitente</label>
-                        <input type="email" class="form-control" id="smtp_from" name="config[smtp_from]" 
-                               value="<?= SMTP_FROM ?>">
+                        <label for="from_email" class="form-label">Email Remitente</label>
+                        <input type="email" class="form-control" id="from_email" name="config[from_email]"
+                               value="<?= htmlspecialchars($smtp_config['from_email'] ?? '') ?>"
+                               placeholder="noreply@tudominio.com">
                     </div>
                 </div>
             </div>
             
             <div class="row">
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group">
-                        <label for="smtp_pass" class="form-label">Contraseña SMTP</label>
-                        <input type="password" class="form-control" id="smtp_pass" name="config[smtp_pass]" 
+                        <label for="smtp_password" class="form-label">Contraseña SMTP</label>
+                        <input type="password" class="form-control" id="smtp_password" name="config[smtp_password]"
                                placeholder="••••••••" autocomplete="new-password">
                         <small class="text-secondary">Dejar en blanco para mantener la contraseña actual</small>
                     </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
                     <div class="form-group">
-                        <label class="form-label">Opciones de Seguridad</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="smtp_ssl" 
-                                   name="config[smtp_ssl]" value="1" checked>
-                            <label class="form-check-label" for="smtp_ssl">
-                                Usar SSL/TLS
-                            </label>
-                        </div>
+                        <label for="from_name" class="form-label">Nombre del Remitente</label>
+                        <input type="text" class="form-control" id="from_name" name="config[from_name]"
+                               value="<?= htmlspecialchars($smtp_config['from_name'] ?? 'Orion Suite') ?>"
+                               placeholder="Orion Suite">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="form-group">
+                        <label for="smtp_secure" class="form-label">Tipo de Encriptación</label>
+                        <select class="form-control form-select" id="smtp_secure" name="config[smtp_secure]">
+                            <option value="tls" <?= ($smtp_config['smtp_secure'] ?? 'tls') === 'tls' ? 'selected' : '' ?>>TLS (puerto 587)</option>
+                            <option value="ssl" <?= ($smtp_config['smtp_secure'] ?? 'tls') === 'ssl' ? 'selected' : '' ?>>SSL (puerto 465)</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -292,9 +308,9 @@ function resetToDefaults() {
         
         // Resetear campos principales
         document.getElementById('app_name').value = '<?= APP_NAME ?>';
-        document.getElementById('session_timeout').value = '<?= SESSION_TIMEOUT / 60 ?>';
+        document.getElementById('session_timeout').value = '<?= SESSION_LIFETIME / 60 ?>';
         document.getElementById('max_login_attempts').value = '<?= MAX_LOGIN_ATTEMPTS ?>';
-        document.getElementById('lockout_time').value = '<?= LOCKOUT_TIME / 60 ?>';
+        document.getElementById('lockout_time').value = '<?= LOGIN_LOCKOUT_TIME / 60 ?>';
         document.getElementById('password_min_length').value = '<?= PASSWORD_MIN_LENGTH ?>';
         
         setTimeout(() => {
@@ -338,12 +354,3 @@ document.getElementById('configForm').addEventListener('submit', function(e) {
     SistemaGestion.showNotification('Guardando configuración...', 'info');
 });
 </script>
-
-<?php 
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
-?>

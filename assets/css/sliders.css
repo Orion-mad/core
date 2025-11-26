@@ -1,0 +1,72 @@
+    /* La "capa" que contendrá las pantallas: ajusta altura según lo necesites */
+    #pantallas-capa {
+      position: relative;
+      overflow: hidden;           /* Escondemos el sobrante para el efecto de slide */
+      width: 100%;
+      height: 70vh;               /* ejemplo: 70% de viewport height */
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: .5rem;
+      box-shadow: 0 6px 30px rgba(2,6,23,.6);
+      color: #fff;
+    }
+
+    /* Track horizontal que contiene todas las pantallas en fila */
+    .pantallas-track {
+      display: flex;
+      height: 100%;
+      transition: transform 400ms cubic-bezier(.22,.9,.35,1);
+      will-change: transform;
+    }
+
+    /* Cada pantalla ocupa 100% del ancho de la capa */
+    .pantalla {
+      min-width: 100%;
+      height: 100%;
+      padding: 1.5rem;
+      box-sizing: border-box;
+      overflow-y: auto; /* scroll interno si el contenido desborda */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Estética de ejemplo para el contenido */
+    .panel-card {
+      background: rgba(255,255,255,0.5);
+      border-radius: .6rem;
+      padding: 1rem;
+      height: calc(100% - 2rem);
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      z-index: 50;
+    }
+
+    /* Indicador sencillo en bottom-left */
+    .page-indicator {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      z-index: 50;
+      background: rgba(0,0,0,.35);
+      padding: .35rem .6rem;
+      border-radius: 999px;
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* Pequeño ajuste para botones cuando solo hay 1 pantalla */
+    .btn-ghost {
+      background: rgba(255,255,255,0.06);
+      color: #fff;
+      border: 0;
+    }
+
+    /* Responsive: altura menor en móviles */
+    @media (max-width: 576px) {
+      #pantallas-capa { height: 60vh; }
+    }

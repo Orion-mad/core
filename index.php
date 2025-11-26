@@ -29,7 +29,7 @@ $action = $_GET['action'] ?? 'dashboard';
 $auth = Auth::getInstance();
 
 // Limpiar sesiones expiradas periódicamente
-if (rand(1, 100) === 1) {
+if( (rand(1, 100) === 1) and (SESSION_TIMEOUT)) {
     $auth->cleanExpiredSessions();
 }
 
@@ -61,6 +61,10 @@ switch ($action) {
 
     case 'dashboard':
         handleDashboard();
+        break;
+    
+    case 'sliders':
+        handleSliders();
         break;
     
     case 'admin':
@@ -269,6 +273,15 @@ function handleDashboard() {
     ]);
 }
 
+function handleSliders() {
+    global $auth;
+    load_view('sliders', [
+        'user' => 'slider',
+        'current_page' => 'sliders',
+        'title' => 'Sliders'
+    ]);
+}
+
 /**
  * Manejar panel de administración
  */
@@ -462,31 +475,46 @@ function handleAdminPermissions() {
  */
 function handleAdminConfig() {
     global $auth;
-    
+
     if (!$auth->isAdmin()) {
         load_view('error', ['message' => 'Acceso denegado. Se requieren permisos de administrador.']);
         return;
     }
-    
+
     $db = Database::getInstance();
-    
-    // Obtener configuraciones por categoría
-    $config_general = $db->select(
-        "SELECT * FROM configuracion_sistema WHERE categoria = 'general' ORDER BY clave"
-    );
-    
-    $config_email = $db->select(
-        "SELECT * FROM configuracion_sistema WHERE categoria = 'email' ORDER BY clave"
-    );
-    
-    $config_security = $db->select(
-        "SELECT * FROM configuracion_sistema WHERE categoria = 'seguridad' ORDER BY clave"
-    );
-    
+
+    // Obtener configuraciones por categoría con manejo de errores
+    try {
+        $config_general = $db->select(
+            "SELECT * FROM configuracion_sistema WHERE categoria = 'general' ORDER BY clave"
+        );
+    } catch (Exception $e) {
+        $config_general = [];
+        write_log('WARNING', 'Error al obtener configuración general', ['error' => $e->getMessage()]);
+    }
+
+    try {
+        $config_email = $db->select(
+            "SELECT * FROM configuracion_sistema WHERE categoria = 'email' ORDER BY clave"
+        );
+    } catch (Exception $e) {
+        $config_email = [];
+        write_log('WARNING', 'Error al obtener configuración email', ['error' => $e->getMessage()]);
+    }
+
+    try {
+        $config_security = $db->select(
+            "SELECT * FROM configuracion_sistema WHERE categoria = 'seguridad' ORDER BY clave"
+        );
+    } catch (Exception $e) {
+        $config_security = [];
+        write_log('WARNING', 'Error al obtener configuración seguridad', ['error' => $e->getMessage()]);
+    }
+
     load_view('admin/configuracion', [
-        'config_general' => $config_general,
-        'config_email' => $config_email,
-        'config_security' => $config_security,
+        'config_general' => $config_general ?? [],
+        'config_email' => $config_email ?? [],
+        'config_security' => $config_security ?? [],
         'current_page' => 'configuracion',
         'title' => 'Configuración del Sistema'
     ]);

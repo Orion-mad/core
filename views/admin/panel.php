@@ -1,9 +1,7 @@
-<?php 
+<?php
 $current_page = 'admin';
 $title = 'Panel de Administración';
 $breadcrumb = 'Administración / Panel Principal';
-
-ob_start(); 
 ?>
 
 <!-- Page Header con nuevo diseño -->
@@ -397,12 +395,3 @@ function animateValue(element, start, end, duration) {
     requestAnimationFrame(updateValue);
 }
 </script>
-
-<?php 
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
-?>

@@ -1,9 +1,7 @@
-<?php 
+<?php
 $current_page = 'admin';
 $title = 'Gestión de Roles y Permisos';
 $breadcrumb = 'Administración / Roles y Permisos';
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -442,12 +440,3 @@ document.getElementById('permissionsModal').addEventListener('click', function(e
     if (e.target === this) closePermissionsModal();
 });
 </script>
-
-<?php 
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
-?>

@@ -64,7 +64,8 @@ DirectoryIndex index.php index.html
     AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
 </IfModule>
 
-# Cache para archivos estáticos
+# Cache para archivos estáticos (PRODUCCIÓN)
+# Comentar esta sección durante desarrollo si hay problemas de caché
 <IfModule mod_expires.c>
     ExpiresActive On
     ExpiresByType text/css "access plus 1 month"
@@ -75,6 +76,16 @@ DirectoryIndex index.php index.html
     ExpiresByType image/gif "access plus 1 month"
     ExpiresByType image/svg+xml "access plus 1 month"
 </IfModule>
+
+# DESARROLLO: Descomentar para desactivar caché completamente
+# <IfModule mod_headers.c>
+#     Header set Cache-Control "no-cache, no-store, must-revalidate"
+#     Header set Pragma "no-cache"
+#     Header set Expires 0
+# </IfModule>
+# <IfModule mod_expires.c>
+#     ExpiresActive Off
+# </IfModule>
 
 # Prevenir hotlinking
 #<IfModule mod_rewrite.c>

@@ -1,9 +1,7 @@
-<?php 
+<?php
 $current_page = 'admin';
 $title = 'Gestión de Usuarios';
 $breadcrumb = 'Administración / Gestión de Usuarios';
-
-ob_start(); 
 ?>
 
 <div class="page-header">
@@ -495,11 +493,4 @@ function time_ago($datetime) {
     
     return date('d/m/Y', strtotime($datetime));
 }
-
-$content = ob_get_clean();
-render_with_layout($content, [
-    'current_page' => $current_page,
-    'title' => $title,
-    'breadcrumb' => $breadcrumb
-]); 
 ?>
